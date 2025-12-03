@@ -1,0 +1,13 @@
+{
+  "name": "IO-Link Protocol Analyzer",
+  "apiVersion": "1.0.0",
+  "author": "Sebastian Haag",
+  "version": "0.0.1",
+  "description": "",
+  "extensions": {
+    "IO-Link Protocol Analyzer": {
+      "type": "HighLevelAnalyzer",
+      "entryPoint": "ioLinkAnalyzer.IOLinkProtocolAnalyzer"
+    }
+  }
+}
