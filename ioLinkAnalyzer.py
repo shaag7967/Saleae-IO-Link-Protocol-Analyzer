@@ -86,7 +86,11 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
     def __init__(self):
         self.analyzerMode: AnalyzerMode = AnalyzerMode(self.analyzer_mode_setting)
 
-        filename = Path(str(self.iodd_xml_pathfilename).strip('"')).resolve()
+        iodd_filename_setting = str(self.iodd_xml_pathfilename).strip('"')
+        if len(iodd_filename_setting) < 5:
+            raise ValueError(f"Invalid IODD filename: '{iodd_filename_setting}' (length: {len(iodd_filename_setting)})")
+
+        filename = Path(iodd_filename_setting).resolve()
         if not filename.is_file():
             filename_fromFile = IOLinkProtocolAnalyzer._getIoddFilenameFromTextFile()
             filename = Path(filename_fromFile.strip('"')).resolve()
