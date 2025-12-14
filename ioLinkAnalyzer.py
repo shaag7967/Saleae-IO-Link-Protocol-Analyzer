@@ -115,6 +115,7 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         if iodd_filenameFromFile.is_file():
             with open(iodd_filenameFromFile) as f:
                 return f.readline().strip()
+        return ''
 
     def printAnalyzerSettings(self):
         print(f"Using IODD file: '{self.iodd.fileInfo.filename}'")
