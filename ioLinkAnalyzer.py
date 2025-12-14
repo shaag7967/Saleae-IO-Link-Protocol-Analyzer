@@ -1,11 +1,8 @@
-import sys
 import os
 from pathlib import Path
 from pprint import pprint
 
 from typing import List
-
-sys.path.append(os.path.join(os.path.dirname(__file__), 'locallibs'))
 
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, ChoicesSetting
 from saleae.data.timing import SaleaeTime
