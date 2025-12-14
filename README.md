@@ -6,10 +6,8 @@
 
 The IO-Link Safety Protocol Analyzer uses the following python modules:
 - [iolink-utils](https://pypi.org/project/iolink-utils/)
-- [lxml](https://pypi.org/project/lxml/)
 
 These modules have been installed to the HLA dir using python 3.8 and the following commands:
 ```
-pip install lxml --target .
-pip install iolink-utils --target .
+pip install iolink-utils --upgrade --target .
 ```
