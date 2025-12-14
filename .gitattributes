@@ -1,0 +1,4 @@
+iolink_utils/** linguist-detectable=false
+iolink_utils-0.0.1.dist-info/** linguist-detectable=false
+lxml/** linguist-detectable=false
+lxml-6.0.2.dist-info/** linguist-detectable=false

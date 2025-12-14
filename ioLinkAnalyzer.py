@@ -100,9 +100,8 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         if self.process_data_condition:
             pdCondition = int(str(self.process_data_condition))
 
-        self.DecoderPDOut = createDecoderClass_PDOut(self.iodd.process_data_definition, pdCondition)
-        self.DecoderPDIn = createDecoderClass_PDIn(self.iodd.process_data_definition, pdCondition)
-
+        self.DecoderPDOut = createDecoderClass_PDOut(self.iodd.processDataDefinition, pdCondition)
+        self.DecoderPDIn = createDecoderClass_PDIn(self.iodd.processDataDefinition, pdCondition)
 
         settings = DecoderSettings.fromIODD(self.iodd)
         self.decoder = OctetStreamDecoder(settings)
@@ -118,14 +117,14 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
                 return f.readline().strip()
 
     def printAnalyzerSettings(self):
-        print(f"Using IODD file: '{self.iodd.filename.value}'")
+        print(f"Using IODD file: '{self.iodd.fileInfo.filename}'")
         print(f"IODD\n"
-              f"  {self.iodd.document_info.version} / {self.iodd.document_info.releaseDate} / {self.iodd.document_info.copyright}\n"
+              f"  {self.iodd.documentInfo.version} / {self.iodd.documentInfo.releaseDate} / {self.iodd.documentInfo.copyright}\n"
               f"Physical connection\n"
-              f"  BitRate: {self.iodd.physical_layer.bitrate.name} ({self.iodd.physical_layer.bitrate.value} baud)")
+              f"  BitRate: {self.iodd.physicalLayer.bitrate.name} ({self.iodd.physicalLayer.bitrate.value} baud)")
 
         print(f"Process data")
-        pprint(self.iodd.process_data_definition)
+        pprint(self.iodd.processDataDefinition)
 
         print(f"M-Sequence payload sizes")
         print(f"   Startup:    {self.decoder.settings.startup}")
@@ -190,6 +189,7 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
                     for msg in commChannelMessages:
                         if isinstance(msg, ISDU):
                             analyzerFrames.append(
-                                AnalyzerFrame(msg.name(), SaleaeTime(msg.start_time), SaleaeTime(msg.end_time), msg.data()))
+                                AnalyzerFrame(msg.name(), SaleaeTime(msg.start_time), SaleaeTime(msg.end_time),
+                                              msg.data()))
 
         return analyzerFrames
