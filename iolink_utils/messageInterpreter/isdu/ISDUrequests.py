@@ -1,6 +1,10 @@
 from iolink_utils.octetDecoder.octetDecoder import IService
-from iolink_utils.messageInterpreter.ISDU import IServiceNibble, FlowCtrl, ISDU
+from iolink_utils.messageInterpreter.isdu.ISDU import IServiceNibble, FlowCtrl, ISDU
 
+
+#
+# WRITE
+#
 
 class ISDURequest_Write8bitIdx(ISDU):
     def __init__(self, iService: IService):
@@ -24,6 +28,9 @@ class ISDURequest_Write8bitIdx(ISDU):
             'index': self.index,
             'data': self.rawData  # TODO payload only
         }
+
+    def dispatch(self, handler):
+        return handler.handleISDU(self)
 
     def __str__(self):  # pragma: no cover
         return f"ISDURequest_Write8bitIdx(index={self.index} data={self.rawData.hex()})"
@@ -55,6 +62,9 @@ class ISDURequest_Write8bitIdxSub(ISDU):
             'data': self.rawData  # TODO payload only
         }
 
+    def dispatch(self, handler):
+        return handler.handleISDU(self)
+
     def __str__(self):  # pragma: no cover
         return f"ISDURequest_Write8bitIdxSub(index={self.index} subIndex={self.subIndex} data={self.rawData.hex()})"
 
@@ -85,11 +95,16 @@ class ISDURequest_Write16bitIdxSub(ISDU):
             'data': self.rawData  # TODO payload only
         }
 
+    def dispatch(self, handler):
+        return handler.handleISDU(self)
+
     def __str__(self):  # pragma: no cover
         return f"ISDURequest_Write16bitIdxSub(index={self.index} subIndex={self.subIndex} data={self.rawData.hex()})"
 
 
-### READ ###
+#
+# READ
+#
 
 class ISDURequest_Read8bitIdx(ISDU):
     def __init__(self, iService: IService):
@@ -111,6 +126,9 @@ class ISDURequest_Read8bitIdx(ISDU):
             'valid': self.isValid,
             'index': self.index
         }
+
+    def dispatch(self, handler):
+        return handler.handleISDU(self)
 
     def __str__(self):  # pragma: no cover
         return f"ISDURequest_Read8bitIdx(index={self.index} data={self.rawData.hex()})"
@@ -140,6 +158,9 @@ class ISDURequest_Read8bitIdxSub(ISDU):
             'subIndex': self.subIndex
         }
 
+    def dispatch(self, handler):
+        return handler.handleISDU(self)
+
     def __str__(self):  # pragma: no cover
         return f"ISDURequest_Read8bitIdxSub(index={self.index} subIndex={self.subIndex} data={self.rawData.hex()})"
 
@@ -168,6 +189,9 @@ class ISDURequest_Read16bitIdxSub(ISDU):
             'index': self.index,
             'subIndex': self.subIndex
         }
+
+    def dispatch(self, handler):
+        return handler.handleISDU(self)
 
     def __str__(self):  # pragma: no cover
         return f"ISDURequest_Read16bitIdxSub(index={self.index} subIndex={self.subIndex} data={self.rawData.hex()})"

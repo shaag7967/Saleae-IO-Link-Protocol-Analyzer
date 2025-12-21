@@ -1,4 +1,5 @@
-from .crcLookupTables import crc16_lookup_table, crc32_lookup_table
+from .crcLookupTables import crc16_lookup_table
+
 
 # See IOL SafetySpec: Figure D.4 – CRC-16 signature calculation using a lookup table
 # r = crctab16 [((r >> 8) ^ *q++) & 0xff] ^(r << 8)

@@ -2,26 +2,17 @@ import os
 from pathlib import Path
 from pprint import pprint
 
-from typing import List
-
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, ChoicesSetting
-from saleae.data.timing import SaleaeTime
 
 from iolink_utils.iodd.iodd import Iodd
-
-from iolink_utils.octetDecoder.octetStreamDecoder import OctetStreamDecoder
-from iolink_utils.octetDecoder.octetStreamDecoderSettings import DecoderSettings
-from iolink_utils.octetDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
-
+from iolink_utils.octetStreamDecoder.octetStreamDecoder import OctetStreamDecoder
+from iolink_utils.octetStreamDecoder.octetStreamDecoderSettings import DecoderSettings
 from iolink_utils.messageInterpreter.messageInterpreter import MessageInterpreter
-from iolink_utils.messageInterpreter.commChannelPage import TransactionPage
-from iolink_utils.messageInterpreter.commChannelDiagnosis import TransactionDiagEventMemory, TransactionDiagEventReset
-from iolink_utils.messageInterpreter.ISDU import ISDU
-
-from iolink_utils.octetDecoder.processDataDecoder import createDecoderClass_PDOut, createDecoderClass_PDIn
+from iolink_utils.processDataDecoder.processDataDecoder import createDecoderClass_PDOut, createDecoderClass_PDIn
 
 from analyzerMode import AnalyzerMode
-from dataDictGenerator import DataDictGenerator
+from messageHandler import MSequenceHandler, ProcessDataHandler
+from transactionHandler import PageDiagnosisHandler, ISDUHandler
 
 
 class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
@@ -37,10 +28,10 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
             'format': 'DEV OD({{data.od}}) PD({{data.pdIn}}) {{data.cks}}'
         },
         'pdIN': {
-            'format': 'PDOut {{data.pdOut}}'
+            'format': 'PDIn {{data.pdIn}}'
         },
         'pdOUT': {
-            'format': 'PDIn {{data.pdIn}}'
+            'format': 'PDOut {{data.pdOut}}'
         },
         'page': {
             'format': 'Page {{data.page}}'
@@ -103,6 +94,9 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         pdCondition = None
         if self.process_data_condition:
             pdCondition = int(str(self.process_data_condition))
+        if pdCondition not in self.iodd.processDataConditionValues:
+            raise ValueError(f"Invalid ProcessDataCondition: {pdCondition}. "
+                             f"Allowed values are: {', '.join(self.iodd.processDataConditionValues)}.")
 
         self.DecoderPDOut = createDecoderClass_PDOut(self.iodd.processDataDefinition, pdCondition)
         self.DecoderPDIn = createDecoderClass_PDIn(self.iodd.processDataDefinition, pdCondition)
@@ -136,65 +130,44 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         print(f"   Preoperate: {self.decoder.settings.preoperate}")
         print(f"   Operate:    {self.decoder.settings.operate}")
 
-    def decode(self, frame: AnalyzerFrame):
-        analyzerFrames: List[AnalyzerFrame] = []
+    def _dispatchMessage(self, message):
+        if message is None:
+            return []
 
-        if frame.type == 'data':
-            if 'error' in frame.data:
-                self.decoder.reset()
-                return []
+        # convert messages into saleae frames
+        if self.analyzerMode == AnalyzerMode.MSequence:
+            return message.dispatch(MSequenceHandler())
 
-            message_mseq = self.decoder.processOctet(frame.data['data'][0], frame.start_time.as_datetime(),
-                                                     frame.end_time.as_datetime())
+        if self.analyzerMode == AnalyzerMode.ProcessData:
+            return message.dispatch(ProcessDataHandler(self.decoder, self.DecoderPDOut, self.DecoderPDIn))
 
-            if self.analyzerMode == AnalyzerMode.MSequence:
-                if isinstance(message_mseq, MasterMessage):
-                    analyzerFrames.append(AnalyzerFrame('mseqMASTER', SaleaeTime(message_mseq.start_time),
-                                                        SaleaeTime(message_mseq.end_time),
-                                                        DataDictGenerator.fromMasterMessage(message_mseq)))
-                elif isinstance(message_mseq, DeviceMessage):
-                    analyzerFrames.append(AnalyzerFrame('mseqDEVICE', SaleaeTime(message_mseq.start_time),
-                                                        SaleaeTime(message_mseq.end_time),
-                                                        DataDictGenerator.fromDeviceMessage(message_mseq)))
-            elif self.analyzerMode == AnalyzerMode.ProcessData:
-                if isinstance(message_mseq, MasterMessage):
-                    # we don't know if we are in OPERATE -> check for process data
-                    if self.decoder.settings.operate.pdOut == len(message_mseq.pdOut):
-                        analyzerFrames.append(
-                            AnalyzerFrame('pdOUT', SaleaeTime(message_mseq.start_time),
-                                          SaleaeTime(message_mseq.end_time),
-                                          DataDictGenerator.fromProcessData('pdOut', self.DecoderPDOut,
-                                                                            message_mseq.pdOut)))
-                elif isinstance(message_mseq, DeviceMessage):
-                    # we don't know if we are in OPERATE -> check for process data
-                    if self.decoder.settings.operate.pdIn == len(message_mseq.pdIn):
-                        analyzerFrames.append(
-                            AnalyzerFrame('pdIN', SaleaeTime(message_mseq.start_time),
-                                          SaleaeTime(message_mseq.end_time),
-                                          DataDictGenerator.fromProcessData('pdIn', self.DecoderPDIn,
-                                                                            message_mseq.pdIn)))
-            else:
-                commChannelMessages = self.interpreter.processMessage(message_mseq)
+        # interpret messages and create transactions from it
+        if self.analyzerMode == AnalyzerMode.PageDiagnosis:
+            handler = PageDiagnosisHandler()
+        elif self.analyzerMode == AnalyzerMode.ISDU:
+            handler = ISDUHandler()
+        else:
+            return []
 
-                if self.analyzerMode == AnalyzerMode.PageDiagnosis:
-                    for msg in commChannelMessages:
-                        if isinstance(msg, TransactionPage):
-                            analyzerFrames.append(
-                                AnalyzerFrame('page', SaleaeTime(msg.start_time), SaleaeTime(msg.end_time), msg.data()))
-                        elif isinstance(msg, TransactionDiagEventMemory):
-                            analyzerFrames.append(
-                                AnalyzerFrame('diagREAD', SaleaeTime(msg.start_time), SaleaeTime(msg.end_time),
-                                              msg.data()))
-                        elif isinstance(msg, TransactionDiagEventReset):
-                            analyzerFrames.append(
-                                AnalyzerFrame('diagFINISH', SaleaeTime(msg.start_time), SaleaeTime(msg.end_time),
-                                              msg.data()))
-
-                elif self.analyzerMode == AnalyzerMode.ISDU:
-                    for msg in commChannelMessages:
-                        if isinstance(msg, ISDU):
-                            analyzerFrames.append(
-                                AnalyzerFrame(msg.name(), SaleaeTime(msg.start_time), SaleaeTime(msg.end_time),
-                                              msg.data()))
+        # convert transactions into saleae frames
+        transactions = self.interpreter.processMessage(message)
+        analyzerFrames = []
+        for tx in transactions:
+            analyzerFrames.extend(tx.dispatch(handler))
 
         return analyzerFrames
+
+    def decode(self, frame: AnalyzerFrame):
+        if frame.type != 'data':
+            return []
+
+        if 'error' in frame.data:
+            self.decoder.reset()
+            return []
+
+        message = self.decoder.processOctet(
+            frame.data['data'][0],
+            frame.start_time.as_datetime(),
+            frame.end_time.as_datetime()
+        )
+        return self._dispatchMessage(message)

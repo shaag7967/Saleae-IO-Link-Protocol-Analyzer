@@ -1,73 +1,10 @@
-from typing import Dict
 from datetime import datetime as dt
 from enum import IntEnum
 
-from iolink_utils.octetDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
+from iolink_utils.octetStreamDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
-from iolink_utils.octetDecoder.octetDecoder import (StatusCodeType1, StatusCodeType2, Event)
-from iolink_utils.definitions.events import EventType, EventMode
 
-
-class TransactionDiagEventMemory:
-    def __init__(self, start_time: dt, end_time: dt, eventMemory: bytearray):
-        self.start_time: dt = start_time
-        self.end_time: dt = end_time
-
-        self.eventMemory: bytearray = eventMemory
-
-    def _getStatusCode(self):
-        if not self.eventMemory:
-            return "no data"
-
-        statusCode = StatusCodeType2.from_buffer_copy(self.eventMemory, 0)
-        if statusCode.details == 0:  # legacy
-            statusCode = StatusCodeType1.from_buffer_copy(self.eventMemory, 0)
-
-        return str(statusCode)
-
-    def _getEvents(self):
-        events = []
-
-        statusCode = StatusCodeType2.from_buffer_copy(self.eventMemory, 0)
-        if statusCode.details == 1:
-            event_offsets = [1 + 3 * i for i in range(6)]
-            event_flags = [
-                statusCode.evt1,
-                statusCode.evt2,
-                statusCode.evt3,
-                statusCode.evt4,
-                statusCode.evt5,
-                statusCode.evt6,
-            ]
-
-            for idx, (flag, offset) in enumerate(zip(event_flags, event_offsets), start=1):
-                if flag:
-                    evt = Event.from_buffer_copy(self.eventMemory, offset)
-                    events.append((idx,
-                                   f"{EventType(evt.qualifier.type).name}{EventMode(evt.qualifier.mode).name}({evt.code.code})"))
-
-        return events
-
-    def data(self) -> Dict:
-        return {
-            'evtStatus': self._getStatusCode(),
-            **{f'evt{idx}': info for idx, info in self._getEvents()}
-        }
-
-    def __str__(self):
-        return f"Diag EventMem: '{self.data()}"
-
-
-class TransactionDiagEventReset:
-    def __init__(self, start_time: dt, end_time: dt):
-        self.start_time: dt = start_time
-        self.end_time: dt = end_time
-
-    def data(self) -> Dict:
-        return {}
-
-    def __str__(self):
-        return f"Diag Reset"
+from .transactionDiagnosis import TransactionDiagEventMemory, TransactionDiagEventReset
 
 
 class CommChannelDiagnosis:
@@ -89,7 +26,7 @@ class CommChannelDiagnosis:
         self.eventMemory: bytearray = bytearray()
         self.eventMemoryIndex: int = 0
 
-    def processMasterMessage(self, message: MasterMessage):
+    def handleMasterMessage(self, message: MasterMessage):
         self.direction = TransmissionDirection(message.mc.read)
         self.eventMemoryIndex = message.mc.address
 
@@ -110,7 +47,7 @@ class CommChannelDiagnosis:
 
         return []
 
-    def processDeviceMessage(self, message: DeviceMessage):
+    def handleDeviceMessage(self, message: DeviceMessage):
         transactions = []
 
         if self.state == CommChannelDiagnosis.State.ReadEventMemory:

@@ -1,4 +1,5 @@
 from typing import Union
+import copy
 from datetime import datetime as dt, timedelta
 
 from iolink_utils.definitions.timing import getMaxFrameTransmissionDelay_master, getMaxResponseTime, \
@@ -10,7 +11,7 @@ from .octetStreamDecoderMessages import DeviceMessage, MasterMessage
 
 class OctetStreamDecoder:
     def __init__(self, settings: DecoderSettings):
-        self.settings: DecoderSettings = settings
+        self.settings: DecoderSettings = copy.deepcopy(settings)
 
         self.state: DecodingState = DecodingState.Idle
         self.messageDecoder: Union[None, MasterMessageDecoder, DeviceMessageDecoder] = None

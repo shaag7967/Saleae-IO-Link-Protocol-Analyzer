@@ -11,6 +11,7 @@ class MessageState(IntEnum):
     Incomplete = 0,
     Finished = 1
 
+
 class DecodingState(IntEnum):
     Idle = 0,
     MasterMessage = 1,

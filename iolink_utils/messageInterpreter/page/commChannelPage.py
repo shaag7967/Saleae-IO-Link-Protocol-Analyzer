@@ -1,7 +1,7 @@
-from typing import List, Dict
+from typing import List
 from datetime import datetime as dt
 
-from iolink_utils.octetDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
+from iolink_utils.octetStreamDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
 from iolink_utils.definitions.directParameterPage import DirectParameterPage1Index
 from iolink_utils.definitions.masterCommand import MasterCommand
 from iolink_utils.definitions.systemCommand import SystemCommand
@@ -11,22 +11,7 @@ from iolink_utils.octetDecoder.octetDecoder import (CycleTimeOctet, MSequenceCap
 from iolink_utils.utils.cycleTime import CycleTime
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
 
-
-class TransactionPage:
-    def __init__(self, name: str, value: str):
-        self.start_time: dt = dt(1970, 1, 1)
-        self.end_time: dt = dt(1970, 1, 1)
-
-        self.name: str = name
-        self.value: str = value
-
-    def data(self) -> Dict:
-        return {
-            'page': ' '.join(filter(None, [self.name, self.value]))
-        }
-
-    def __str__(self):
-        return f"Page: {' '.join(filter(None, [self.name, self.value]))}"
+from .transactionPage import TransactionPage
 
 
 class CommChannelPage:
@@ -91,7 +76,7 @@ class CommChannelPage:
         if self.direction == TransmissionDirection.Write:
             return TransactionPage("SystemCommand", SystemCommand(self.octet).name)
 
-    def processMasterMessage(self, message: MasterMessage):
+    def handleMasterMessage(self, message: MasterMessage):
         self.start_time = message.start_time
         self.end_time = message.end_time
 
@@ -101,7 +86,7 @@ class CommChannelPage:
 
         return []
 
-    def processDeviceMessage(self, message: DeviceMessage) -> List[TransactionPage]:
+    def handleDeviceMessage(self, message: DeviceMessage) -> List[TransactionPage]:
         self.end_time = message.end_time
         if self.direction == TransmissionDirection.Read:
             self.octet = message.od[0]

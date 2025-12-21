@@ -38,4 +38,3 @@ class CycleTime:
                 return octet
 
         raise InvalidCycleTime(f"Value {timeInMs} ms out of supported range")
-

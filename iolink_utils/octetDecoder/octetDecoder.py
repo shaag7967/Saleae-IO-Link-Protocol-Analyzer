@@ -16,6 +16,7 @@ class MC(OctetDecoderBase):
         return f"MC({TransmissionDirection(self.read).name}, channel={CommChannel(self.channel).name}, address={self.address})"
 
 
+# See Figure A.2 – Checksum/M-sequence type octet
 class CKT(OctetDecoderBase):
     _fields_ = [
         ("mSeqType", ctypes.c_uint8, 2),
@@ -24,6 +25,7 @@ class CKT(OctetDecoderBase):
 
     def getWithoutChecksum(self):
         return int(self) & 0xC0
+
 
 class CKS(OctetDecoderBase):
     _fields_ = [
@@ -34,6 +36,7 @@ class CKS(OctetDecoderBase):
 
     def getWithoutChecksum(self):
         return int(self) & 0xC0
+
 
 class IService(OctetDecoderBase):
     _fields_ = [
@@ -49,6 +52,7 @@ class StatusCodeType1(OctetDecoderBase):
         ("unused", ctypes.c_uint8, 1),
         ("eventCode", ctypes.c_uint8, 5)
     ]
+
 
 # See A.6.3 StatusCode type 2 (with details)
 class StatusCodeType2(OctetDecoderBase):

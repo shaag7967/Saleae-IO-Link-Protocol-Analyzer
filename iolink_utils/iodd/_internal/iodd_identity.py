@@ -21,10 +21,10 @@ from dataclasses import dataclass
 @dataclass
 class DeviceVariant:
     productId: str = ''
-    deviceSymbol: str = '' #  filename
-    deviceIcon: str = '' #  filename
-    name: Tuple[str, str] = ('', '')  #  textId, text
-    description: Tuple[str, str] = ('', '')  #  textId, text
+    deviceSymbol: str = ''  # filename
+    deviceIcon: str = ''  # filename
+    name: Tuple[str, str] = ('', '')  # textId, text
+    description: Tuple[str, str] = ('', '')  # textId, text
 
 
 class Identity:

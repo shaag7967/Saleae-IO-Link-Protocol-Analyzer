@@ -17,7 +17,8 @@ def createFSP_IOStructDescription(processDataDefinition: dict) -> FSP_IOStructDe
         for element in pdDescrInOut['dataFormat']:
             if element['subIndex'] == 127:
                 descr.DataRange = int((pdDescrInOut['bitLength'] - element['bitOffset']) / 8)
-                descr.TotalOfOctets = descr.DataRange - int(element['data']['bitLength'] / 8) # subtract size of SafetyCode
+                descr.TotalOfOctets = descr.DataRange - int(
+                    element['data']['bitLength'] / 8)  # subtract size of SafetyCode
             elif element['subIndex'] < 127:
                 if element['data']['bitLength'] == 1:
                     descr.TotalOfBits += 1

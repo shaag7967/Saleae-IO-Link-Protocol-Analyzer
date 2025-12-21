@@ -1,13 +1,11 @@
-from typing import Dict
-from datetime import datetime as dt
 from enum import IntEnum
 
-from iolink_utils.octetDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
+from iolink_utils.octetStreamDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
 from iolink_utils.octetDecoder.octetDecoder import IService
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
-from .ISDU import IServiceNibble, FlowCtrl
-from .ISDUrequests import createISDURequest
-from .ISDUresponses import createISDUResponse
+from iolink_utils.messageInterpreter.isdu.ISDU import IServiceNibble, FlowCtrl
+from iolink_utils.messageInterpreter.isdu.ISDUrequests import createISDURequest
+from iolink_utils.messageInterpreter.isdu.ISDUresponses import createISDUResponse
 
 
 class CommChannelISDU:
@@ -30,7 +28,7 @@ class CommChannelISDU:
 
         self.responseStartTime = None
 
-    def processMasterMessage(self, message: MasterMessage):
+    def handleMasterMessage(self, message: MasterMessage):
         self.direction = TransmissionDirection(message.mc.read)
         self.flowCtrl = FlowCtrl(message.mc.address)
 
@@ -64,7 +62,7 @@ class CommChannelISDU:
 
         return []
 
-    def processDeviceMessage(self, message: DeviceMessage):
+    def handleDeviceMessage(self, message: DeviceMessage):
         isduTransactions = []
 
         if self.state == CommChannelISDU.State.RequestFinished:

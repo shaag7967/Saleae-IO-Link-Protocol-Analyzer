@@ -20,6 +20,7 @@ _safetyCodeInFields = [
     ("FI_portNum", ctypes.c_uint8)
 ]
 
+
 def __sortByBitOffset(elem: Dict):
     return elem['bitOffset']
 
@@ -44,7 +45,7 @@ def __create_field_from_data_format(json_dataFormat, safetyCodeFields):
 
     bit_offset = 0
     for element in json_dataFormat:
-        e_name = element['name'][0] #  using textId as name
+        e_name = element['name'][0]  # using textId as name
         e_offset = element['bitOffset']
         e_value_type = element['data']['type']
         e_length = element['data']['bitLength']
@@ -58,7 +59,7 @@ def __create_field_from_data_format(json_dataFormat, safetyCodeFields):
             bit_offset += diff
 
         if e_value_type == bytearray:
-            if e_subIndex == 127 and e_length == 6*8:  # safety code has 6 bytes (crc32)
+            if e_subIndex == 127 and e_length == 6 * 8:  # safety code has 6 bytes (crc32)
                 fields.extend(safetyCodeFields)
             else:
                 if e_length % 8 != 0:

@@ -11,7 +11,7 @@ class ODOctetCount:
     # Table A.8  - M-sequence types for the PREOPERATE mode
     __preoperate = {
         #  m-sequence code: On-request data, type
-        0: (1, 'TYPE_0'), # not recommended
+        0: (1, 'TYPE_0'),  # not recommended
         1: (2, 'TYPE_1_2'),
         2: (8, 'TYPE_1_V'),
         3: (32, 'TYPE_1_V')

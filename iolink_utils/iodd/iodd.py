@@ -27,7 +27,8 @@ class Iodd:
             self.physicalLayer: PhysicalLayer = iodd_xml_doc.get_physical_layer()
             self.processDataDefinition: Dict = iodd_xml_doc.get_process_data_definition()
         else:
-            raise InvalidIoddFile(f"Expected IODevice inside XML file, got {iodd_xml_doc.docType}.")
+            # e.g. language file
+            raise InvalidIoddFile(f"Expected IODevice inside XML file, got {iodd_xml_doc.docType}.")  # pragma: no cover
 
     def isSafetyDevice(self) -> bool:
         return ProfileID.SafetyDevice in self.features.profileIDs

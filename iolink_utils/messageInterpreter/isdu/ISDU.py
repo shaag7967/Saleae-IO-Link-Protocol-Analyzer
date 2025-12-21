@@ -1,9 +1,9 @@
-import abc
 from enum import IntEnum
 from datetime import datetime as dt
+from abc import abstractmethod
 
 from iolink_utils.octetDecoder.octetDecoder import IService
-from abc import ABC, abstractmethod
+from iolink_utils.messageInterpreter.transaction import Transaction
 
 
 # See Table A.12 – Definition of the nibble "I-Service"
@@ -48,7 +48,7 @@ class FlowCtrl:
         raise ValueError(f"Invalid FlowCtrl value: {value}")
 
 
-class ISDU(ABC):
+class ISDU(Transaction):
     def __init__(self, iService: IService):
         self.flowCtrl: FlowCtrl = FlowCtrl()
 

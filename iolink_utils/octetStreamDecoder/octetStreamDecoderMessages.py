@@ -1,8 +1,22 @@
 from datetime import datetime as dt
+from typing import Union
+from abc import ABC, abstractmethod
+
+from iolink_utils.definitions.communicationChannel import CommChannel
 from iolink_utils.octetDecoder.octetDecoder import MC, CKT, CKS
 
 
-class MasterMessage:
+class Message(ABC):
+    @abstractmethod
+    def dispatch(self, handler):  # pragma: no cover
+        pass
+
+    @abstractmethod
+    def channel(self) -> Union[None, CommChannel]:  # pragma: no cover
+        pass
+
+
+class MasterMessage(Message):
     def __init__(self):
         self.start_time: dt = dt(1970, 1, 1)
         self.end_time: dt = dt(1970, 1, 1)
@@ -25,8 +39,14 @@ class MasterMessage:
             elements.append(f"od={bytes(self.od).hex()}")
         return f"MasterMessage({', '.join(elements)})"
 
+    def dispatch(self, handler):
+        return handler.handleMasterMessage(self)
 
-class DeviceMessage:
+    def channel(self):
+        return CommChannel(self.mc.channel)
+
+
+class DeviceMessage(Message):
     def __init__(self):
         self.start_time: dt = dt(1970, 1, 1)
         self.end_time: dt = dt(1970, 1, 1)
@@ -47,3 +67,9 @@ class DeviceMessage:
             elements.append(f"pdIn={bytes(self.pdIn).hex()}")
         elements.append(f"cks={self.cks}")
         return f"DeviceMessage({', '.join(elements)})"
+
+    def dispatch(self, handler):
+        return handler.handleDeviceMessage(self)
+
+    def channel(self) -> Union[None, CommChannel]:
+        return None
