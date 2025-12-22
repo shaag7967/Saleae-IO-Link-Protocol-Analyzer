@@ -25,8 +25,8 @@ class ISDURequest_Write8bitIdx(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self.index,
-            'data': self.rawData  # TODO payload only
+            'index': str(self.index),
+            'data': self.rawData[2:-1] if self._hasExtendedLength() else self.rawData[1:-1]
         }
 
     def dispatch(self, handler):
@@ -57,9 +57,9 @@ class ISDURequest_Write8bitIdxSub(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self.index,
-            'subIndex': self.subIndex,
-            'data': self.rawData  # TODO payload only
+            'index': str(self.index),
+            'subIndex': str(self.subIndex),
+            'data': self.rawData[3:-1] if self._hasExtendedLength() else self.rawData[1:-1]
         }
 
     def dispatch(self, handler):
@@ -90,9 +90,9 @@ class ISDURequest_Write16bitIdxSub(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self.index,
-            'subIndex': self.subIndex,
-            'data': self.rawData  # TODO payload only
+            'index': str(self.index),
+            'subIndex': str(self.subIndex),
+            'data': self.rawData[4:-1] if self._hasExtendedLength() else self.rawData[3:-1]
         }
 
     def dispatch(self, handler):
@@ -124,7 +124,7 @@ class ISDURequest_Read8bitIdx(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self.index
+            'index': str(self.index)
         }
 
     def dispatch(self, handler):
@@ -154,8 +154,8 @@ class ISDURequest_Read8bitIdxSub(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self.index,
-            'subIndex': self.subIndex
+            'index': str(self.index),
+            'subIndex': str(self.subIndex)
         }
 
     def dispatch(self, handler):
@@ -184,10 +184,9 @@ class ISDURequest_Read16bitIdxSub(ISDU):
 
     def data(self) -> dict:
         return {
-            'name': 'Read16bitIdxSub',
             'valid': self.isValid,
-            'index': self.index,
-            'subIndex': self.subIndex
+            'index': str(self.index),
+            'subIndex': str(self.subIndex)
         }
 
     def dispatch(self, handler):

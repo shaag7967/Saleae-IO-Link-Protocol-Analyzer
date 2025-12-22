@@ -4,8 +4,9 @@ from enum import IntEnum
 class AnalyzerMode(IntEnum):
     MSequence = (0, "M-Sequences")
     ProcessData = (1, "ProcessData")
-    PageDiagnosis = (2, "Page and Diagnosis")
-    ISDU = (3, "ISDU")
+    Diagnosis = (2, "Diagnosis")
+    Page = (3, "Page")
+    ISDU = (4, "ISDU")
 
     def __new__(cls, value, description):
         obj = int.__new__(cls, value)

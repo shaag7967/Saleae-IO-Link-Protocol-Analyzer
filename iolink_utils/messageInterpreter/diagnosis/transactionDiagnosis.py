@@ -1,51 +1,39 @@
+import copy
 from typing import Dict
 from datetime import datetime as dt
 
-from iolink_utils.octetDecoder.octetDecoder import (StatusCodeType1, StatusCodeType2, Event)
-from iolink_utils.definitions.events import EventType, EventMode
+from iolink_utils.octetDecoder.octetDecoder import (StatusCodeType1, StatusCodeType2)
+from iolink_utils.definitions.eventInfo import EventType, EventMode
+from iolink_utils.definitions.eventMemory import EventMemory
 from iolink_utils.messageInterpreter.transaction import Transaction
 
 
 class TransactionDiagEventMemory(Transaction):
-    def __init__(self, start_time: dt, end_time: dt, eventMemory: bytearray):
+    def __init__(self, start_time: dt, end_time: dt, eventMemory: EventMemory):
         self.start_time: dt = start_time
         self.end_time: dt = end_time
-
-        self.eventMemory: bytearray = eventMemory
-
-    def _getStatusCode(self):
-        statusCode = StatusCodeType2.from_buffer_copy(self.eventMemory, 0)
-        if statusCode.details == 0:  # legacy
-            statusCode = StatusCodeType1.from_buffer_copy(self.eventMemory, 0)
-
-        return str(statusCode)
+        self.eventMemory: EventMemory = copy.deepcopy(eventMemory)
 
     def _getEvents(self):
+        event_flags = [
+            self.eventMemory.statusCode.evt1,
+            self.eventMemory.statusCode.evt2,
+            self.eventMemory.statusCode.evt3,
+            self.eventMemory.statusCode.evt4,
+            self.eventMemory.statusCode.evt5,
+            self.eventMemory.statusCode.evt6,
+        ]
+
         events = []
-
-        statusCode = StatusCodeType2.from_buffer_copy(self.eventMemory, 0)
-        if statusCode.details == 1:
-            event_offsets = [1 + 3 * i for i in range(6)]
-            event_flags = [
-                statusCode.evt1,
-                statusCode.evt2,
-                statusCode.evt3,
-                statusCode.evt4,
-                statusCode.evt5,
-                statusCode.evt6,
-            ]
-
-            for idx, (flag, offset) in enumerate(zip(event_flags, event_offsets), start=1):
-                if flag:
-                    evt = Event.from_buffer_copy(self.eventMemory, offset)
-                    events.append((idx, f"{EventType(evt.qualifier.type).name}{EventMode(evt.qualifier.mode).name}"
-                                        f"({evt.code.code})"))
-
+        for idx, (flag, event) in enumerate(zip(event_flags, self.eventMemory.events), start=1):
+            if flag:
+                events.append((idx, f"{EventType(event.qualifier.type).name}{EventMode(event.qualifier.mode).name}"
+                                    f"({event.code})"))
         return events
 
     def data(self) -> Dict:
         return {
-            'evtStatus': self._getStatusCode(),
+            'evtStatus': str(self.eventMemory.statusCode),
             **{f'evt{idx}': info for idx, info in self._getEvents()}
         }
 

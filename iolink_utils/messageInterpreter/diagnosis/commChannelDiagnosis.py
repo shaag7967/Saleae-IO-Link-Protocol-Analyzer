@@ -3,6 +3,7 @@ from enum import IntEnum
 
 from iolink_utils.octetStreamDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
+from iolink_utils.definitions.eventMemory import EventMemory
 
 from .transactionDiagnosis import TransactionDiagEventMemory, TransactionDiagEventReset
 
@@ -16,50 +17,42 @@ class CommChannelDiagnosis:
     def __init__(self):
         self.state: CommChannelDiagnosis.State = CommChannelDiagnosis.State.Idle
 
-        self.read_startTime: dt = dt(1970, 1, 1)
-        self.read_endTime: dt = dt(1970, 1, 1)
+        self.startTime: dt = dt(1970, 1, 1)
+        self.endTime: dt = dt(1970, 1, 1)
 
-        self.reset_startTime: dt = dt(1970, 1, 1)
-        self.reset_endTime: dt = dt(1970, 1, 1)
-
-        self.direction: TransmissionDirection = TransmissionDirection.Read
-        self.eventMemory: bytearray = bytearray()
+        self.eventMemory: EventMemory = EventMemory()
         self.eventMemoryIndex: int = 0
 
     def handleMasterMessage(self, message: MasterMessage):
-        self.direction = TransmissionDirection(message.mc.read)
         self.eventMemoryIndex = message.mc.address
 
         if self.state == CommChannelDiagnosis.State.Idle:
-            self.eventMemory = bytearray()
+            direction = TransmissionDirection(message.mc.read)
 
-            if self.direction == TransmissionDirection.Write and self.eventMemoryIndex == 0:
-                self.reset_startTime = message.start_time
-                self.state = CommChannelDiagnosis.State.ResetEventFlag
-            elif self.direction == TransmissionDirection.Read:
-                self.read_startTime = message.start_time
+            # read event memory
+            if direction == TransmissionDirection.Read:
+                self.eventMemory.clear()
+                self.startTime = message.start_time
                 self.state = CommChannelDiagnosis.State.ReadEventMemory
-
-        elif self.state == CommChannelDiagnosis.State.ReadEventMemory:
-            if self.direction == TransmissionDirection.Write and self.eventMemoryIndex == 0:
-                self.reset_startTime = message.start_time
+            # reset event flag
+            elif direction == TransmissionDirection.Write and self.eventMemoryIndex == 0:
+                self.startTime = message.start_time
                 self.state = CommChannelDiagnosis.State.ResetEventFlag
 
         return []
 
     def handleDeviceMessage(self, message: DeviceMessage):
-        transactions = []
-
         if self.state == CommChannelDiagnosis.State.ReadEventMemory:
-            self.read_endTime = message.end_time
-            if self.eventMemoryIndex == len(self.eventMemory):
-                self.eventMemory.append(message.od[0])
-            else:  # something is wrong TODO reset received data / error handling
-                self.state = CommChannelDiagnosis.State.Idle
-        elif self.state == CommChannelDiagnosis.State.ResetEventFlag:
-            self.reset_endTime = message.end_time
-            transactions.append(TransactionDiagEventMemory(self.read_startTime, self.read_endTime, self.eventMemory))
-            transactions.append(TransactionDiagEventReset(self.reset_startTime, self.reset_endTime))
-            self.state = CommChannelDiagnosis.State.Idle
+            self.endTime = message.end_time
+            self.eventMemory.setMemory(self.eventMemoryIndex, message.od[0])
 
-        return transactions
+            if self.eventMemory.isComplete():
+                self.state = CommChannelDiagnosis.State.Idle
+                return [TransactionDiagEventMemory(self.startTime, self.endTime, self.eventMemory)]
+
+        elif self.state == CommChannelDiagnosis.State.ResetEventFlag:
+            self.endTime = message.end_time
+            self.state = CommChannelDiagnosis.State.Idle
+            return [TransactionDiagEventReset(self.startTime, self.endTime)]
+
+        return []

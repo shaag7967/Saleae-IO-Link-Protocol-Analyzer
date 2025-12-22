@@ -1,7 +1,7 @@
 from ._octetDecoderBase import OctetDecoderBase, ctypes
 from iolink_utils.definitions.communicationChannel import CommChannel
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
-from iolink_utils.definitions.events import EventType, EventInstance, EventMode, EventSource
+from iolink_utils.definitions.eventInfo import EventType, EventInstance, EventMode, EventSource
 
 
 class MC(OctetDecoderBase):
@@ -79,25 +79,6 @@ class EventQualifier(OctetDecoderBase):
     def __str__(self):  # pragma: no cover
         return (f"EventQualifier({EventMode(self.mode).name}, {EventType(self.type).name}, "
                 f"{EventSource(self.source).name}, {EventInstance(self.instance).name})")
-
-
-class EventCode(OctetDecoderBase):
-    _fields_ = [
-        ("code", ctypes.c_uint16)
-    ]
-
-    def __str__(self):  # pragma: no cover
-        return f"EventCode({self.code}d / 0x{self.code:04X})"
-
-
-class Event(OctetDecoderBase):
-    _fields_ = [
-        ('qualifier', EventQualifier),
-        ("code", EventCode)
-    ]
-
-    def __str__(self):  # pragma: no cover
-        return f"Event({self.qualifier}, {self.code})"
 
 
 class CycleTimeOctet(OctetDecoderBase):

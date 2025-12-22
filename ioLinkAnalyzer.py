@@ -9,10 +9,11 @@ from iolink_utils.octetStreamDecoder.octetStreamDecoder import OctetStreamDecode
 from iolink_utils.octetStreamDecoder.octetStreamDecoderSettings import DecoderSettings
 from iolink_utils.messageInterpreter.messageInterpreter import MessageInterpreter
 from iolink_utils.processDataDecoder.processDataDecoder import createDecoderClass_PDOut, createDecoderClass_PDIn
+from iolink_utils.exceptions import IOLinkUtilsException
 
 from analyzerMode import AnalyzerMode
 from messageHandler import MSequenceHandler, ProcessDataHandler
-from transactionHandler import PageDiagnosisHandler, ISDUHandler
+from transactionHandler import DiagnosisHandler, PageHandler, ISDUHandler
 
 
 class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
@@ -83,10 +84,7 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
 
         filename = Path(iodd_filename_setting).resolve()
         if not filename.is_file():
-            filename_fromFile = IOLinkProtocolAnalyzer._getIoddFilenameFromTextFile()
-            filename = Path(filename_fromFile.strip('"')).resolve()
-            if not filename.is_file():
-                raise FileNotFoundError(f"IODD file '{filename}' not found.")
+            raise FileNotFoundError(f"IODD file '{filename}' not found.")
 
         self.iodd = Iodd(str(filename))
 
@@ -106,14 +104,6 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         self.interpreter = MessageInterpreter()
 
         self.printAnalyzerSettings()
-
-    @staticmethod
-    def _getIoddFilenameFromTextFile() -> str:
-        iodd_filenameFromFile = Path(os.path.dirname(__file__), 'iodd_filename.txt').resolve()
-        if iodd_filenameFromFile.is_file():
-            with open(iodd_filenameFromFile) as f:
-                return f.readline().strip()
-        return ''
 
     def printAnalyzerSettings(self):
         print(f"Using IODD file: '{self.iodd.fileInfo.filename}'")
@@ -142,8 +132,10 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
             return message.dispatch(ProcessDataHandler(self.decoder, self.DecoderPDOut, self.DecoderPDIn))
 
         # interpret messages and create transactions from it
-        if self.analyzerMode == AnalyzerMode.PageDiagnosis:
-            handler = PageDiagnosisHandler()
+        if self.analyzerMode == AnalyzerMode.Diagnosis:
+            handler = DiagnosisHandler()
+        elif self.analyzerMode == AnalyzerMode.Page:
+            handler = PageHandler()
         elif self.analyzerMode == AnalyzerMode.ISDU:
             handler = ISDUHandler()
         else:
@@ -165,9 +157,14 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
             self.decoder.reset()
             return []
 
-        message = self.decoder.processOctet(
-            frame.data['data'][0],
-            frame.start_time.as_datetime(),
-            frame.end_time.as_datetime()
-        )
-        return self._dispatchMessage(message)
+        try:
+            message = self.decoder.processOctet(
+                frame.data['data'][0],
+                frame.start_time.as_datetime(),
+                frame.end_time.as_datetime()
+            )
+            return self._dispatchMessage(message)
+        except IOLinkUtilsException:
+            self.decoder.reset()
+            # TODO self.interpreter.reset()
+            return []

@@ -28,5 +28,5 @@ class AutoNameConvertMeta(EnumMeta):
             try:
                 value = int(value)
             except ValueError:
-                raise ValueError(f"Cannot convert '{value}' to {cls.__name__}")
+                raise ValueError(f"Cannot convert '{value}' to {cls.__name__}") from None
         return super().__call__(value, *args, **kwargs)

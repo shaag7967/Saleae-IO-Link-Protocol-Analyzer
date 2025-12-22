@@ -33,11 +33,3 @@ class MessageInterpreter:
         if channel is not None:
             self.activeChannel = channel
         return message.dispatch(self.channelHandler[self.activeChannel])
-
-        # if isinstance(message, MasterMessage):
-        #     self.activeChannel = CommChannel(message.mc.channel)
-        #     self.channels[self.activeChannel].processMasterMessage(message)
-        # elif isinstance(message, DeviceMessage):
-        #     return self.channels[self.activeChannel].processDeviceMessage(message)
-
-        # return []

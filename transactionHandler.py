@@ -7,50 +7,52 @@ from iolink_utils.messageInterpreter.isdu.ISDU import ISDU
 
 
 class TransactionHandler:
-    def handlePage(self, msg: TransactionPage):
+    def handlePage(self, transaction: TransactionPage):
         return []
 
-    def handleDiagEventMemory(self, msg: TransactionDiagEventMemory):
+    def handleDiagEventMemory(self, transaction: TransactionDiagEventMemory):
         return []
 
-    def handleDiagEventReset(self, msg: TransactionDiagEventReset):
+    def handleDiagEventReset(self, transaction: TransactionDiagEventReset):
         return []
 
-    def handleISDU(self, msg: ISDU):
+    def handleISDU(self, transaction: ISDU):
         return []
 
 
-class PageDiagnosisHandler(TransactionHandler):
-    def handlePage(self, msg: TransactionPage):
-        return [AnalyzerFrame(
-            'page',
-            SaleaeTime(msg.start_time),
-            SaleaeTime(msg.end_time),
-            msg.data()
-        )]
-
-    def handleDiagEventMemory(self, msg: TransactionDiagEventMemory):
+class DiagnosisHandler(TransactionHandler):
+    def handleDiagEventMemory(self, transaction: TransactionDiagEventMemory):
         return [AnalyzerFrame(
             'diagREAD',
-            SaleaeTime(msg.start_time),
-            SaleaeTime(msg.end_time),
-            msg.data()
+            SaleaeTime(transaction.start_time),
+            SaleaeTime(transaction.end_time),
+            transaction.data()
         )]
 
-    def handleDiagEventReset(self, msg: TransactionDiagEventReset):
+    def handleDiagEventReset(self, transaction: TransactionDiagEventReset):
         return [AnalyzerFrame(
             'diagFINISH',
-            SaleaeTime(msg.start_time),
-            SaleaeTime(msg.end_time),
-            msg.data()
+            SaleaeTime(transaction.start_time),
+            SaleaeTime(transaction.end_time),
+            transaction.data()
+        )]
+
+
+class PageHandler(TransactionHandler):
+    def handlePage(self, transaction: TransactionPage):
+        return [AnalyzerFrame(
+            'page',
+            SaleaeTime(transaction.start_time),
+            SaleaeTime(transaction.end_time),
+            transaction.data()
         )]
 
 
 class ISDUHandler(TransactionHandler):
-    def handleISDU(self, msg: ISDU):
+    def handleISDU(self, transaction: ISDU):
         return [AnalyzerFrame(
-            msg.name(),
-            SaleaeTime(msg.start_time),
-            SaleaeTime(msg.end_time),
-            msg.data()
+            transaction.name(),
+            SaleaeTime(transaction.start_time),
+            SaleaeTime(transaction.end_time),
+            transaction.data()
         )]

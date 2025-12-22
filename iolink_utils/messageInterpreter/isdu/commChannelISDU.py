@@ -73,7 +73,7 @@ class CommChannelISDU:
 
         elif self.state == CommChannelISDU.State.WaitForResponse:
             if self.flowCtrl.state == FlowCtrl.State.Start:
-                if IService(message.od[0]).service != IServiceNibble.NoService:
+                if len(message.od) > 0 and IService(message.od[0]).service != IServiceNibble.NoService:
                     self.isduResponse = createISDUResponse(IService(message.od[0]))
 
                     self.isduResponse.setStartTime(self.responseStartTime)

@@ -44,3 +44,11 @@ class InvalidOctetCount(IOLinkUtilsException):
 
 class InvalidBitRate(IOLinkUtilsException):
     """Raised if bitrate is invalid / unsupported"""
+
+
+class InvalidEventMemoryAddress(IOLinkUtilsException):
+    """Raised if address of event memory byte is invalid"""
+
+
+class InvalidEventStatusCode(IOLinkUtilsException):
+    """Legacy event status code is not supported"""

@@ -26,8 +26,8 @@ class ISDUResponse_WriteResp_M(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'errorCode': self.errorCode,
-            'additionalCode': self.additionalCode
+            'errorCode': hex(self.errorCode),
+            'additionalCode': hex(self.additionalCode)
         }
 
     def dispatch(self, handler):
@@ -84,8 +84,8 @@ class ISDUResponse_ReadResp_M(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'errorCode': self.errorCode,
-            'additionalCode': self.additionalCode
+            'errorCode': hex(self.errorCode),
+            'additionalCode': hex(self.additionalCode)
         }
 
     def dispatch(self, handler):
@@ -109,7 +109,7 @@ class ISDUResponse_ReadResp_P(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'data': self.rawData  # TODO payload only
+            'data': self.rawData[2:-1] if self._hasExtendedLength() else self.rawData[1:-1]
         }
 
     def dispatch(self, handler):
