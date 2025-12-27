@@ -152,6 +152,7 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
 
         if 'error' in frame.data:
             self.decoder.reset()
+            self.interpreter.reset()
             return []
 
         try:
