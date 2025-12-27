@@ -38,9 +38,12 @@ class OctetDecoderBase(ctypes.BigEndianStructure):
         else:
             raise InvalidOctetValue()
 
+    def copy(self):
+        return self.__class__(int(self))
+
+    def valuesAsString(self) -> str:
+        return ", ".join(f"{name}={getattr(self, name)}" for name, *_ in self._fields_ if name != 'unused')
+
     def __repr__(self):  # pragma: no cover
         """String representation of decoded content."""
-        fields_repr = ", ".join(
-            f"{name}={getattr(self, name)}" for name, *_ in self._fields_ if name != 'unused'
-        )
-        return f"{self.__class__.__name__}({fields_repr})"
+        return f"{self.__class__.__name__}({self.valuesAsString()})"

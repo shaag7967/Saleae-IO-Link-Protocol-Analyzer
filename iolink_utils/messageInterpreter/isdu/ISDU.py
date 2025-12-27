@@ -2,6 +2,7 @@ from enum import IntEnum
 from datetime import datetime as dt
 from abc import abstractmethod
 
+from iolink_utils.exceptions import InvalidFlowControlValue
 from iolink_utils.octetDecoder.octetDecoder import IService
 from iolink_utils.messageInterpreter.transaction import Transaction
 
@@ -30,6 +31,8 @@ class FlowCtrl:
         Abort = 4
 
     def __init__(self, value: int = 0x11):
+        self.state = FlowCtrl.State.Reserved
+
         # See Table 52 – FlowCTRL definitions
         mappings = [
             (range(0x00, 0x10), FlowCtrl.State.Count),  # 0x00–0x0F
@@ -45,11 +48,13 @@ class FlowCtrl:
                 self.value = value
                 return
 
-        raise ValueError(f"Invalid FlowCtrl value: {value}")
+        raise InvalidFlowControlValue(f"Invalid FlowCtrl value: {value}")
 
 
 class ISDU(Transaction):
     def __init__(self, iService: IService):
+        super().__init__()
+
         self.flowCtrl: FlowCtrl = FlowCtrl()
 
         self.service = IServiceNibble(iService.service)
@@ -59,9 +64,6 @@ class ISDU(Transaction):
 
         self.isValid = False
         self.isComplete = False
-
-        self.start_time = dt(1970, 1, 1)
-        self.end_time = dt(1970, 1, 1)
 
     def _hasExtendedLength(self):
         return self.length == 1
@@ -75,11 +77,8 @@ class ISDU(Transaction):
             chk ^= b
         return chk
 
-    def setStartTime(self, start_time: dt):
-        self.start_time = start_time
-
     def setEndTime(self, end_time: dt):
-        self.end_time = end_time
+        self.endTime = end_time
 
     def appendOctets(self, flowCtrl: FlowCtrl, requestData: bytearray) -> bool:
         if flowCtrl.state == FlowCtrl.State.Start or flowCtrl.state == FlowCtrl.State.Count:

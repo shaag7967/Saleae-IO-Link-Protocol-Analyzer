@@ -1,35 +1,37 @@
-from typing import Union, List
+from typing import Union
 
 from iolink_utils.octetStreamDecoder.octetStreamDecoderMessages import DeviceMessage, MasterMessage
 from iolink_utils.definitions.communicationChannel import CommChannel
-from iolink_utils.messageInterpreter.diagnosis.commChannelDiagnosis import CommChannelDiagnosis, TransactionDiagEventMemory, TransactionDiagEventReset
+
+from iolink_utils.messageInterpreter.diagnosis.commChannelDiagnosis import CommChannelDiagnosis, \
+    TransactionDiagEventMemory, TransactionDiagEventReset
 from iolink_utils.messageInterpreter.isdu.commChannelISDU import CommChannelISDU
 from iolink_utils.messageInterpreter.isdu.ISDU import ISDU
 from iolink_utils.messageInterpreter.page.commChannelPage import CommChannelPage, TransactionPage
-
-
-class CommChannelProcess:
-    def handleMasterMessage(self, message: MasterMessage):  # pragma: no cover
-        return []
-
-    def handleDeviceMessage(self, message: DeviceMessage):  # pragma: no cover
-        return []
+from iolink_utils.messageInterpreter.process.commChannelProcess import CommChannelProcess
 
 
 class MessageInterpreter:
     def __init__(self):
-        self.channelHandler = {
-            CommChannel.Process: CommChannelProcess(),
+        self._channelHandler = {
+            CommChannel.Process: CommChannelProcess(),  # this is not ProcessData! (dummy handler)
             CommChannel.Page: CommChannelPage(),
             CommChannel.Diagnosis: CommChannelDiagnosis(),
             CommChannel.ISDU: CommChannelISDU()
         }
-        self.activeChannel: CommChannel = CommChannel.Process
+        self._activeChannel: CommChannel = CommChannel.Process
 
-    def processMessage(self, message: Union[MasterMessage, DeviceMessage]) -> List[
-            Union[TransactionPage, TransactionDiagEventMemory, TransactionDiagEventReset, ISDU]]:
-
-        channel = message.channel()
+    def _updateActiveChannel(self, channel: Union[None, CommChannel]):
         if channel is not None:
-            self.activeChannel = channel
-        return message.dispatch(self.channelHandler[self.activeChannel])
+            self._activeChannel = channel
+
+    def processMessage(self, message: Union[MasterMessage, DeviceMessage]) \
+            -> Union[None, TransactionPage, TransactionDiagEventMemory, TransactionDiagEventReset, ISDU]:
+        self._updateActiveChannel(message.channel())
+        return message.dispatch(self._channelHandler[self._activeChannel])
+
+    def reset(self):
+        self._activeChannel = CommChannel.Process
+
+        for handler in self._channelHandler.values():
+            handler.reset()

@@ -1,24 +1,36 @@
-from typing import List, Dict
+from typing import Dict
 from datetime import datetime as dt
 
 from iolink_utils.messageInterpreter.transaction import Transaction
+from iolink_utils.definitions.transmissionDirection import TransmissionDirection
+from iolink_utils.utils.directParameterTranslator import translateDirectParameter, Translation
 
 
 class TransactionPage(Transaction):
-    def __init__(self, name: str, value: str):
-        self.start_time: dt = dt(1970, 1, 1)
-        self.end_time: dt = dt(1970, 1, 1)
+    def __init__(self, direction: TransmissionDirection, pageIndex: int, value: int):
+        super().__init__()
 
-        self.name: str = name
-        self.value: str = value
+        self.direction: TransmissionDirection = direction
+        self.index: int = pageIndex
+        self.value: int = value
+
+    def setTime(self, start: dt, end: dt):
+        self.startTime = start
+        self.endTime = end
 
     def data(self) -> Dict:
+        translation: Translation = translateDirectParameter(self.index, self.value, self.direction)
         return {
-            'page': ' '.join(filter(None, [self.name, self.value]))
+            'pageDir': self.direction.name,
+            'pageIndex': str(self.index),
+            'pageValue': f'0x{self.value:0{2}X}',
+            'pageInfo': f'{translation.name}: {translation.value}',
+            'pageError': translation.error
         }
 
     def dispatch(self, handler):
         return handler.handlePage(self)
 
-    def __str__(self):
-        return f"Page: {' '.join(filter(None, [self.name, self.value]))}"
+    def __str__(self):  # pragma: no cover
+        translation: Translation = translateDirectParameter(self.index, self.value, self.direction)
+        return f"Page {self.direction.name}: {': '.join(filter(None, translation))}"

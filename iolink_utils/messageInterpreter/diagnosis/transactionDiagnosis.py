@@ -2,7 +2,6 @@ import copy
 from typing import Dict
 from datetime import datetime as dt
 
-from iolink_utils.octetDecoder.octetDecoder import (StatusCodeType1, StatusCodeType2)
 from iolink_utils.definitions.eventInfo import EventType, EventMode
 from iolink_utils.definitions.eventMemory import EventMemory
 from iolink_utils.messageInterpreter.transaction import Transaction
@@ -10,8 +9,8 @@ from iolink_utils.messageInterpreter.transaction import Transaction
 
 class TransactionDiagEventMemory(Transaction):
     def __init__(self, start_time: dt, end_time: dt, eventMemory: EventMemory):
-        self.start_time: dt = start_time
-        self.end_time: dt = end_time
+        super().__init__()
+        self.setTime(start_time, end_time)
         self.eventMemory: EventMemory = copy.deepcopy(eventMemory)
 
     def _getEvents(self):
@@ -40,14 +39,14 @@ class TransactionDiagEventMemory(Transaction):
     def dispatch(self, handler):
         return handler.handleDiagEventMemory(self)
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return f"Diag EventMem: '{self.data()}"
 
 
 class TransactionDiagEventReset(Transaction):
     def __init__(self, start_time: dt, end_time: dt):
-        self.start_time: dt = start_time
-        self.end_time: dt = end_time
+        super().__init__()
+        self.setTime(start_time, end_time)
 
     def data(self) -> Dict:
         return {}
@@ -55,5 +54,5 @@ class TransactionDiagEventReset(Transaction):
     def dispatch(self, handler):
         return handler.handleDiagEventReset(self)
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return "Diag Reset"

@@ -1,5 +1,7 @@
 from typing import Union
 from dataclasses import dataclass, field
+
+from iolink_utils.exceptions import InvalidMSeqCode
 from iolink_utils.definitions.bitRate import BitRate
 from iolink_utils.definitions.mSequenceType import MSeqType
 from iolink_utils.iodd.iodd import Iodd
@@ -23,7 +25,7 @@ class DecoderSettings:
         try:
             mstype = MSeqType(mSeqType)
         except ValueError:
-            raise ValueError(f"Invalid M-Sequence type: '{mSeqType}'") from None
+            raise InvalidMSeqCode(f"Invalid M-Sequence type: '{mSeqType}'") from None
 
         return {
             MSeqType.Type_0_STARTUP: self.startup,

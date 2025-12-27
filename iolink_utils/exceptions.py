@@ -52,3 +52,31 @@ class InvalidEventMemoryAddress(IOLinkUtilsException):
 
 class InvalidEventStatusCode(IOLinkUtilsException):
     """Legacy event status code is not supported"""
+
+
+class InvalidFlowControlValue(IOLinkUtilsException):
+    """Raised if value is not a valid flow control value (Start, Idle, Count, ...)"""
+
+
+class InvalidVersionStringFormat(IOLinkUtilsException):
+    """Raised if format of version string is not supported"""
+
+
+class EnumConversionError(IOLinkUtilsException):
+    """Raised if a value cannot be converted into an enum value"""
+
+
+class UnsupportedComplexDataType(IOLinkUtilsException):
+    """Raised if an unsupported complex data type (IODD) was found"""
+
+
+class UnsupportedSimpleDataType(IOLinkUtilsException):
+    """Raised if an unsupported simple data type (IODD) was found"""
+
+
+class InvalidISDUService(IOLinkUtilsException):
+    """Raised if an invalid ISDU service was detected"""
+
+
+class InvalidBitCount(IOLinkUtilsException):
+    """Raised if the number of bits is not as expected"""

@@ -7,6 +7,7 @@ from .iodd_identity import Identity, DeviceVariant
 from .iodd_features import Features
 from .iodd_physical_layer import PhysicalLayer
 
+from iolink_utils.exceptions import UnsupportedComplexDataType, UnsupportedSimpleDataType
 from iolink_utils.utils.version import Version
 from iolink_utils.definitions.bitRate import BitRate
 from iolink_utils.definitions.profiles import ProfileID
@@ -188,7 +189,7 @@ class IoddXmlDoc:
         if xsi_type == 'ArrayT':
             return self.__getArrayTypeAsJSON(xml_complex_datatype)
 
-        raise ValueError(f"Unsupported complex data type ({xsi_type})")
+        raise UnsupportedComplexDataType(f"Unsupported complex data type ({xsi_type})")
 
     def __getRecordTypeAsJSON(self, xml_record_datatype):
         items = []
@@ -236,4 +237,4 @@ class IoddXmlDoc:
                 'bitLength': int(xml_simple_datatype.get("fixedLength")) * 8
             }
 
-        raise ValueError(f"Not supported '{xsi_type}'")
+        raise UnsupportedSimpleDataType(f"Not supported '{xsi_type}'")

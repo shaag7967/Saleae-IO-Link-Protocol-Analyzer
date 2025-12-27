@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from pprint import pprint
 
@@ -17,7 +16,7 @@ from transactionHandler import DiagnosisHandler, PageHandler, ISDUHandler
 
 
 class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
-    iodd_xml_pathfilename = StringSetting(label='IODD XML file')
+    iodd_xml_pathAndFilename = StringSetting(label='IODD XML file')
     analyzer_mode_setting = ChoicesSetting(AnalyzerMode.descriptions())
     process_data_condition = StringSetting(label='Condition value to select ProcessData definition (default: empty)')
 
@@ -35,7 +34,10 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
             'format': 'PDOut {{data.pdOut}}'
         },
         'page': {
-            'format': 'Page {{data.page}}'
+            'format': 'Page {{data.pageDir}} {{data.pageInfo}}'
+        },
+        'process': {  # communication channel Process currently not used
+            'format': 'Process {{data.processSource}} {{data.processDir}}'
         },
         'diagREAD': {
             'format': 'Diagnose {{data.evtStatus}}'
@@ -75,10 +77,10 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         }
     }
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.analyzerMode: AnalyzerMode = AnalyzerMode(self.analyzer_mode_setting)
 
-        iodd_filename_setting = str(self.iodd_xml_pathfilename).strip('"')
+        iodd_filename_setting = str(self.iodd_xml_pathAndFilename).strip('"')
         if len(iodd_filename_setting) < 5:
             raise ValueError(f"Invalid IODD filename: '{iodd_filename_setting}' (length: {len(iodd_filename_setting)})")
 
@@ -106,8 +108,8 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         self.printAnalyzerSettings()
 
     def printAnalyzerSettings(self):
-        print(f"Using IODD file: '{self.iodd.fileInfo.filename}'")
         print(f"IODD\n"
+              f"  {self.iodd.fileInfo.filename}"
               f"  {self.iodd.documentInfo.version} / {self.iodd.documentInfo.releaseDate} / {self.iodd.documentInfo.copyright}\n"
               f"Physical connection\n"
               f"  BitRate: {self.iodd.physicalLayer.bitrate.name} ({self.iodd.physicalLayer.bitrate.value} baud)")
@@ -127,27 +129,22 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         # convert messages into saleae frames
         if self.analyzerMode == AnalyzerMode.MSequence:
             return message.dispatch(MSequenceHandler())
-
         if self.analyzerMode == AnalyzerMode.ProcessData:
             return message.dispatch(ProcessDataHandler(self.decoder, self.DecoderPDOut, self.DecoderPDIn))
 
-        # interpret messages and create transactions from it
-        if self.analyzerMode == AnalyzerMode.Diagnosis:
-            handler = DiagnosisHandler()
-        elif self.analyzerMode == AnalyzerMode.Page:
-            handler = PageHandler()
-        elif self.analyzerMode == AnalyzerMode.ISDU:
-            handler = ISDUHandler()
-        else:
+        # interpret messages
+        transaction = self.interpreter.processMessage(message)
+        if transaction is None:
             return []
 
-        # convert transactions into saleae frames
-        transactions = self.interpreter.processMessage(message)
-        analyzerFrames = []
-        for tx in transactions:
-            analyzerFrames.extend(tx.dispatch(handler))
+        if self.analyzerMode == AnalyzerMode.Diagnosis:
+            return transaction.dispatch(DiagnosisHandler())
+        if self.analyzerMode == AnalyzerMode.Page:
+            return transaction.dispatch(PageHandler())
+        if self.analyzerMode == AnalyzerMode.ISDU:
+            return transaction.dispatch(ISDUHandler())
 
-        return analyzerFrames
+        return []
 
     def decode(self, frame: AnalyzerFrame):
         if frame.type != 'data':
@@ -164,7 +161,8 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
                 frame.end_time.as_datetime()
             )
             return self._dispatchMessage(message)
-        except IOLinkUtilsException:
+        except IOLinkUtilsException as e:
+            print(e)
             self.decoder.reset()
-            # TODO self.interpreter.reset()
+            self.interpreter.reset()
             return []

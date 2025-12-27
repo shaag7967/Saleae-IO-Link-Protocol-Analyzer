@@ -1,6 +1,9 @@
 from typing import Dict
 import ctypes
 
+from iolink_utils.exceptions import InvalidBitCount
+
+
 _safetyCodeOutFields = [
     ("FO_CRC", ctypes.c_uint32),
     ("FO_ChFAckReq", ctypes.c_uint8, 1),
@@ -63,7 +66,7 @@ def __create_field_from_data_format(json_dataFormat, safetyCodeFields):
                 fields.extend(safetyCodeFields)
             else:
                 if e_length % 8 != 0:
-                    raise ValueError(f"Invalid bit count: {e_length} (not a multiple of 8)")
+                    raise InvalidBitCount(f"Invalid bit count: {e_length} (not a multiple of 8)")
                 fields.append((e_name, ctypes.c_ubyte * int(e_length / 8)))
         else:
             if e_length <= 8:
@@ -73,7 +76,7 @@ def __create_field_from_data_format(json_dataFormat, safetyCodeFields):
             elif e_length <= 32:
                 fields.append((e_name, ctypes.c_uint32, e_length))
             else:
-                raise ValueError(f"Invalid length ({e_length}) for {e_name}")
+                raise InvalidBitCount(f"Invalid length ({e_length}) for {e_name}")
 
         bit_offset += e_length
 

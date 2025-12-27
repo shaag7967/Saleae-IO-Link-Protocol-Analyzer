@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Union
 from enum import EnumMeta
 
+from iolink_utils.exceptions import EnumConversionError
+
 
 @dataclass(frozen=True)
 class MSeqPDSizeCombination:
@@ -28,5 +30,9 @@ class AutoNameConvertMeta(EnumMeta):
             try:
                 value = int(value)
             except ValueError:
-                raise ValueError(f"Cannot convert '{value}' to {cls.__name__}") from None
-        return super().__call__(value, *args, **kwargs)
+                raise EnumConversionError(f"Cannot convert '{value}' to {cls.__name__}") from None
+        try:
+            return super().__call__(value, *args, **kwargs)
+        except:
+            raise EnumConversionError(f"'{value}' is not a valid {cls.__name__}") from None
+

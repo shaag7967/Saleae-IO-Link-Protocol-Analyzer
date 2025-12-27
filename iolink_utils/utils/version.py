@@ -1,6 +1,8 @@
 import re
 from functools import total_ordering
 
+from iolink_utils.exceptions import InvalidVersionStringFormat
+
 
 @total_ordering
 class Version:
@@ -9,7 +11,7 @@ class Version:
     def __init__(self, version_str: str = '0.0.0.0'):
         match = self.VERSION_PATTERN.match(version_str)
         if not match:
-            raise ValueError(f"Invalid version string: {version_str}")
+            raise InvalidVersionStringFormat(f"Invalid version string: {version_str}")
         self.parts = [int(p) for p in match.group(1).split(".")]
 
     def _padded_parts(self, length):

@@ -23,6 +23,9 @@ class CommChannelDiagnosis:
         self.eventMemory: EventMemory = EventMemory()
         self.eventMemoryIndex: int = 0
 
+    def reset(self) -> None:
+        self.state = CommChannelDiagnosis.State.Idle
+
     def handleMasterMessage(self, message: MasterMessage):
         self.eventMemoryIndex = message.mc.address
 
@@ -39,8 +42,6 @@ class CommChannelDiagnosis:
                 self.startTime = message.start_time
                 self.state = CommChannelDiagnosis.State.ResetEventFlag
 
-        return []
-
     def handleDeviceMessage(self, message: DeviceMessage):
         if self.state == CommChannelDiagnosis.State.ReadEventMemory:
             self.endTime = message.end_time
@@ -48,11 +49,9 @@ class CommChannelDiagnosis:
 
             if self.eventMemory.isComplete():
                 self.state = CommChannelDiagnosis.State.Idle
-                return [TransactionDiagEventMemory(self.startTime, self.endTime, self.eventMemory)]
+                return TransactionDiagEventMemory(self.startTime, self.endTime, self.eventMemory)
 
         elif self.state == CommChannelDiagnosis.State.ResetEventFlag:
             self.endTime = message.end_time
             self.state = CommChannelDiagnosis.State.Idle
-            return [TransactionDiagEventReset(self.startTime, self.endTime)]
-
-        return []
+            return TransactionDiagEventReset(self.startTime, self.endTime)

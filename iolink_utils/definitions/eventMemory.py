@@ -1,4 +1,3 @@
-from typing import Tuple
 from enum import Flag, auto
 
 from iolink_utils.exceptions import InvalidEventMemoryAddress, InvalidEventStatusCode
@@ -26,8 +25,13 @@ class Event:
         return self._code
 
     def setQualifier(self, qualifier: EventQualifier):
-        self._qualifier = qualifier
+        self._qualifier = qualifier.copy()
         self._state |= Event.InitState.QUALIFIER
+
+    def setCode(self, value: int):
+        self._code = value
+        self._state |= Event.InitState.CODE_MSB
+        self._state |= Event.InitState.CODE_LSB
 
     def setCodeMSB(self, value: int):
         self._code = (self._code & 0x00FF) | (value << 8)
@@ -49,6 +53,19 @@ class Event:
         self._code = 0
         self._state = Event.InitState.CLEAR
 
+    def copy(self) -> "Event":
+        cp = Event()
+        cp._qualifier = self._qualifier.copy()
+        cp._code = self._code
+        cp._state = self._state
+        return cp
+
+    def __copy__(self):  # pragma: no cover
+        return self.copy()
+
+    def __deepcopy__(self, memo):  # pragma: no cover
+        return self.copy()
+
     def __str__(self):  # pragma: no cover
         return f"Event({self._qualifier}, {self._code})"
 
@@ -59,7 +76,7 @@ class EventMemory:
 
     def __init__(self):
         self.statusCode: StatusCodeType2 = StatusCodeType2()
-        self.events: Tuple[Event, Event, Event, Event, Event, Event] = (
+        self.events: tuple[Event, ...] = (
             Event(), Event(), Event(), Event(), Event(), Event()
         )
 
@@ -89,9 +106,23 @@ class EventMemory:
             event.clear()
 
     def isComplete(self) -> bool:
+        if self.statusCode.details == 0:
+            return False
         # event memory is complete if all active events are complete (have all 3 bytes)
         return all(
             not active or event.isComplete() for active, event in zip(
                 (self.statusCode.evt1, self.statusCode.evt2, self.statusCode.evt3,
                  self.statusCode.evt4, self.statusCode.evt5, self.statusCode.evt6), self.events)
         )
+
+    def copy(self) -> "EventMemory":
+        new = EventMemory()
+        new.statusCode = self.statusCode.copy()
+        new.events = tuple(event.copy() for event in self.events)
+        return new
+
+    def __copy__(self):  # pragma: no cover
+        return self.copy()
+
+    def __deepcopy__(self, memo):  # pragma: no cover
+        return self.copy()

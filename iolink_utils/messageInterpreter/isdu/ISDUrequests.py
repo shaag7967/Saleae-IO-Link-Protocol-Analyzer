@@ -1,3 +1,4 @@
+from iolink_utils.exceptions import InvalidISDUService
 from iolink_utils.octetDecoder.octetDecoder import IService
 from iolink_utils.messageInterpreter.isdu.ISDU import IServiceNibble, FlowCtrl, ISDU
 
@@ -207,6 +208,6 @@ def createISDURequest(iService: IService):
     }
 
     if iService.service not in _req_map:
-        raise ValueError(f"Invalid request nibble: {iService}")
+        raise InvalidISDUService(f"Invalid request nibble: {iService}")
 
     return _req_map[iService.service](iService)
