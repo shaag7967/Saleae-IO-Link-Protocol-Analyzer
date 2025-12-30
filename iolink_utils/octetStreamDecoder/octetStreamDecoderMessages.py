@@ -7,6 +7,11 @@ from iolink_utils.octetDecoder.octetDecoder import MC, CKT, CKS
 
 
 class Message(ABC):
+    def __init__(self):
+        self.startTime: dt = dt(1970, 1, 1)
+        self.endTime: dt = dt(1970, 1, 1)
+        self.isValid: bool = False
+
     @abstractmethod
     def dispatch(self, handler):  # pragma: no cover
         pass
@@ -18,10 +23,7 @@ class Message(ABC):
 
 class MasterMessage(Message):
     def __init__(self):
-        self.start_time: dt = dt(1970, 1, 1)
-        self.end_time: dt = dt(1970, 1, 1)
-
-        self.isValid: bool = False
+        super().__init__()
 
         self.mc: MC = MC()
         self.ckt: CKT = CKT()
@@ -48,10 +50,7 @@ class MasterMessage(Message):
 
 class DeviceMessage(Message):
     def __init__(self):
-        self.start_time: dt = dt(1970, 1, 1)
-        self.end_time: dt = dt(1970, 1, 1)
-
-        self.isValid: bool = False
+        super().__init__()
 
         self.od: bytearray = bytearray()
         self.pdIn: bytearray = bytearray()

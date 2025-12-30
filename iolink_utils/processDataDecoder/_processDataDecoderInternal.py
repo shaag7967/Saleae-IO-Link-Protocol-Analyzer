@@ -67,7 +67,7 @@ def __create_field_from_data_format(json_dataFormat, safetyCodeFields):
             else:
                 if e_length % 8 != 0:
                     raise InvalidBitCount(f"Invalid bit count: {e_length} (not a multiple of 8)")
-                fields.append((e_name, ctypes.c_ubyte * int(e_length / 8)))
+                fields.append((e_name, ctypes.c_ubyte * int(e_length / 8)))  # type: ignore
         else:
             if e_length <= 8:
                 fields.append((e_name, ctypes.c_uint8, e_length))

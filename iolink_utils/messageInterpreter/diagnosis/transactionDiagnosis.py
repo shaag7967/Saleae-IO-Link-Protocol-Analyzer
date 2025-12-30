@@ -8,9 +8,9 @@ from iolink_utils.messageInterpreter.transaction import Transaction
 
 
 class TransactionDiagEventMemory(Transaction):
-    def __init__(self, start_time: dt, end_time: dt, eventMemory: EventMemory):
+    def __init__(self, startTime: dt, endTime: dt, eventMemory: EventMemory):
         super().__init__()
-        self.setTime(start_time, end_time)
+        self.setTime(startTime, endTime)
         self.eventMemory: EventMemory = copy.deepcopy(eventMemory)
 
     def _getEvents(self):
@@ -24,16 +24,17 @@ class TransactionDiagEventMemory(Transaction):
         ]
 
         events = []
-        for idx, (flag, event) in enumerate(zip(event_flags, self.eventMemory.events), start=1):
+        for flag, event in zip(event_flags, self.eventMemory.events):
             if flag:
-                events.append((idx, f"{EventType(event.qualifier.type).name}{EventMode(event.qualifier.mode).name}"
-                                    f"({event.code})"))
+                events.append(f"{EventType(event.qualifier.type).name}"
+                              f"{EventMode(event.qualifier.mode).name}"
+                              f"(0x{event.code:0{4}X})")
         return events
 
     def data(self) -> Dict:
         return {
-            'evtStatus': str(self.eventMemory.statusCode),
-            **{f'evt{idx}': info for idx, info in self._getEvents()}
+            'eventStatus': self.eventMemory.statusCode.valuesAsString(),
+            'events': ", ".join(self._getEvents())
         }
 
     def dispatch(self, handler):
@@ -44,9 +45,9 @@ class TransactionDiagEventMemory(Transaction):
 
 
 class TransactionDiagEventReset(Transaction):
-    def __init__(self, start_time: dt, end_time: dt):
+    def __init__(self, startTime: dt, endTime: dt):
         super().__init__()
-        self.setTime(start_time, end_time)
+        self.setTime(startTime, endTime)
 
     def data(self) -> Dict:
         return {}

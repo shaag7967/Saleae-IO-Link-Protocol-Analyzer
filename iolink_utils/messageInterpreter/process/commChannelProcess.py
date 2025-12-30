@@ -15,10 +15,10 @@ class CommChannelProcess:
         self._direction = TransmissionDirection(message.mc.read)
 
         transaction = TransactionProcess("Master", self._direction)
-        transaction.setTime(message.start_time, message.end_time)
+        transaction.setTime(message.startTime, message.endTime)
         return transaction
 
     def handleDeviceMessage(self, message: DeviceMessage):
         transaction = TransactionProcess("Device", self._direction)
-        transaction.setTime(message.start_time, message.end_time)
+        transaction.setTime(message.startTime, message.endTime)
         return transaction

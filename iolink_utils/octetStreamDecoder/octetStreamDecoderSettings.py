@@ -23,7 +23,7 @@ class DecoderSettings:
 
     def getPayloadLength(self, mSeqType: Union[int, MSeqType]) -> MSeqPayloadLength:
         try:
-            mstype = MSeqType(mSeqType)
+            mst = MSeqType(mSeqType)
         except ValueError:
             raise InvalidMSeqCode(f"Invalid M-Sequence type: '{mSeqType}'") from None
 
@@ -31,7 +31,7 @@ class DecoderSettings:
             MSeqType.Type_0_STARTUP: self.startup,
             MSeqType.Type_1_PREOPERATE: self.preoperate,
             MSeqType.Type_2_OPERATE: self.operate,
-        }[mstype]
+        }[mst]
 
     @staticmethod
     def fromIODD(iodd: Iodd) -> "DecoderSettings":

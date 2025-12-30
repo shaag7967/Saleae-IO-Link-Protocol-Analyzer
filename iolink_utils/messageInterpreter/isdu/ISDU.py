@@ -1,105 +1,73 @@
-from enum import IntEnum
 from datetime import datetime as dt
 from abc import abstractmethod
 
-from iolink_utils.exceptions import InvalidFlowControlValue
 from iolink_utils.octetDecoder.octetDecoder import IService
 from iolink_utils.messageInterpreter.transaction import Transaction
 
 
-# See Table A.12 – Definition of the nibble "I-Service"
-class IServiceNibble(IntEnum):
-    NoService = 0b0000,
-    M_WriteReq_8bitIdx = 0b0001,
-    M_WriteReq_8bitIdxSub = 0b0010,
-    M_WriteReq_16bitIdxSub = 0b0011,
-    D_WriteResp_M = 0b0100,
-    D_WriteResp_P = 0b0101,
-    M_ReadReq_8bitIdx = 0b1001,
-    M_ReadReq_8bitIdxSub = 0b1010,
-    M_ReadReq_16bitIdxSub = 0b1011,
-    D_ReadResp_M = 0b1100,
-    D_ReadResp_P = 0b1101
-
-
-class FlowCtrl:
-    class State(IntEnum):
-        Count = 0
-        Start = 1
-        Idle = 2
-        Reserved = 3
-        Abort = 4
-
-    def __init__(self, value: int = 0x11):
-        self.state = FlowCtrl.State.Reserved
-
-        # See Table 52 – FlowCTRL definitions
-        mappings = [
-            (range(0x00, 0x10), FlowCtrl.State.Count),  # 0x00–0x0F
-            ([0x10], FlowCtrl.State.Start),
-            ([0x11, 0x12], FlowCtrl.State.Idle),
-            (range(0x13, 0x1F), FlowCtrl.State.Reserved),  # 0x13–0x1E
-            ([0x1F], FlowCtrl.State.Abort),
-        ]
-
-        for key_range, state in mappings:
-            if value in key_range:
-                self.state = state
-                self.value = value
-                return
-
-        raise InvalidFlowControlValue(f"Invalid FlowCtrl value: {value}")
-
-
 class ISDU(Transaction):
-    def __init__(self, iService: IService):
+    def __init__(self):
         super().__init__()
 
-        self.flowCtrl: FlowCtrl = FlowCtrl()
+        self._service: IService = IService()
+        self._rawData: bytearray = bytearray()
+        self._chkpdu: int = 0
+        self._isValid: bool = False
+        self._isComplete: bool = False
 
-        self.service = IServiceNibble(iService.service)
-        self.length = iService.length
-        self.rawData: bytearray = bytearray()
-        self.chkpdu: int = 0
+    @property
+    def isValid(self) -> bool:
+        return self._isValid
 
-        self.isValid = False
-        self.isComplete = False
+    @property
+    def isComplete(self) -> bool:
+        return self._isComplete
+
+    def setEndTime(self, endTime: dt):
+        self.endTime = endTime
 
     def _hasExtendedLength(self):
-        return self.length == 1
+        return self._service.length == 1
 
     def _getTotalLength(self):
-        return int(self.rawData[1]) if self._hasExtendedLength() else self.length
+        return int(self._rawData[1]) if self._hasExtendedLength() else self._service.length
 
     def _calculateCheckByte(self) -> int:
         chk = 0
-        for b in self.rawData[:-1]:  # except chkpdu which is last byte
-            chk ^= b
+        for octet in self._rawData[:-1]:  # except chkpdu which is last byte
+            chk ^= octet
         return chk
 
-    def setEndTime(self, end_time: dt):
-        self.endTime = end_time
+    def _updateInternalData(self):
+        if len(self._rawData) > 0:
+            self._service = IService(int(self._rawData[0]))
 
-    def appendOctets(self, flowCtrl: FlowCtrl, requestData: bytearray) -> bool:
-        if flowCtrl.state == FlowCtrl.State.Start or flowCtrl.state == FlowCtrl.State.Count:
-            # TODO if same count value, replace last received data
-            self.rawData.extend(requestData)
+        targetLength = self._getTotalLength()
+        if len(self._rawData) >= targetLength:
+            self._rawData = self._rawData[:targetLength]
+            self._chkpdu = self._rawData[-1]
+            self._isValid = self._chkpdu == self._calculateCheckByte()
+            self._isComplete = True
+            self._onFinished()  # calls derived class to finish its data
 
-            targetLength = self._getTotalLength()
-            if len(self.rawData) > targetLength:
-                self.rawData = self.rawData[:targetLength]
-        self.flowCtrl = flowCtrl
+    def replaceTrailingOctets(self, requestData: bytearray):
+        lengthToReplace = len(requestData)
+        if lengthToReplace > 0:
+            self._rawData[-lengthToReplace:] = requestData
+            self._updateInternalData()
 
-        if len(self.rawData) == self._getTotalLength():
-            self.chkpdu = self.rawData[-1]
-            self.isValid = self.chkpdu == self._calculateCheckByte()
-            self.isComplete = True
-        return self.isComplete
+    def appendOctets(self, requestData: bytearray):
+        if len(requestData) > 0:
+            self._rawData.extend(requestData)
+            self._updateInternalData()
+
+    def dispatch(self, handler):
+        return handler.handleISDU(self)
 
     @abstractmethod
     def name(self) -> str:  # pragma: no cover
         return 'ISDU'
 
     @abstractmethod
-    def data(self) -> dict:  # pragma: no cover
-        return {}
+    def _onFinished(self) -> None:  # pragma: no cover
+        pass

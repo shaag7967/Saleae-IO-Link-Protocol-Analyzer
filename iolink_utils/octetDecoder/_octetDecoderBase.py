@@ -1,4 +1,5 @@
 import ctypes
+from typing import Optional
 from iolink_utils.exceptions import InvalidOctetValue
 
 
@@ -6,13 +7,23 @@ class OctetDecoderBase(ctypes.BigEndianStructure):
     """Base class for octet decoder (decoding a single byte)"""
     _pack_ = 1
 
-    def __init__(self, value: int = 0):
+    def __init__(self, value: Optional[int] = None, **kwargs):
         super().__init__()
-        self.set(value)
+
+        self.set(value if value is not None else 0)  # can be overridden by explicit field ctor parameters
+
+        field_names = {name for name, *_ in getattr(self, "_fields_", [])}
+        for key, val in kwargs.items():
+            if key not in field_names:
+                raise TypeError(f"Unknown field '{key}' for {self.__class__.__name__}")
+            setattr(self, key, val)
 
     def __int__(self):
         """Get underlying integer value (octet) when casting instance (e.g. int(myDecoder)"""
         return int.from_bytes(bytes(self), "big")
+
+    def __eq__(self, other):
+        return int(self) == int(other)
 
     def get(self) -> int:
         """Get octet as integer value"""

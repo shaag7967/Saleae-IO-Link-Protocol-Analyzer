@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 import copy
 from datetime import datetime as dt, timedelta
 
@@ -11,60 +11,65 @@ from .octetStreamDecoderMessages import DeviceMessage, MasterMessage
 
 class OctetStreamDecoder:
     def __init__(self, settings: DecoderSettings):
-        self.settings: DecoderSettings = copy.deepcopy(settings)
+        self._settings: DecoderSettings = copy.deepcopy(settings)
 
-        self.state: DecodingState = DecodingState.Idle
-        self.messageDecoder: Union[None, MasterMessageDecoder, DeviceMessageDecoder] = None
-        self.lastMasterMessage: Union[None, MasterMessage] = None
-        self.lastDeviceMessage: Union[None, DeviceMessage] = None
+        self._state: DecodingState = DecodingState.Idle
+        self._messageDecoder: Union[None, MasterMessageDecoder, DeviceMessageDecoder] = None
+        self._lastMasterMessage: Optional[MasterMessage] = None
+        self._lastDeviceMessage: Optional[DeviceMessage] = None
 
-        self.lastProcessedOctetEndTime: dt = dt(1970, 1, 1)
+        self._lastProcessedOctetEndTime: dt = dt(1970, 1, 1)
 
-        self.timingConstraints = {
+        self._timingConstraints = {
             DecodingState.Idle: 0,
-            DecodingState.MasterMessage: getMaxFrameTransmissionDelay_master(self.settings.transmissionRate),
-            DecodingState.DeviceResponseDelay: getMaxResponseTime(self.settings.transmissionRate),
-            DecodingState.DeviceMessage: getMaxFrameTransmissionDelay_device(self.settings.transmissionRate),
+            DecodingState.MasterMessage: getMaxFrameTransmissionDelay_master(self._settings.transmissionRate),
+            DecodingState.DeviceResponseDelay: getMaxResponseTime(self._settings.transmissionRate),
+            DecodingState.DeviceMessage: getMaxFrameTransmissionDelay_device(self._settings.transmissionRate),
         }
-        self.maxFrameTransmissionDelay: float = self.timingConstraints[DecodingState.Idle]
+        self._maxFrameTransmissionDelay: float = self._timingConstraints[DecodingState.Idle]
+
+    @property
+    def settings(self) -> DecoderSettings:
+        return self._settings
 
     def _updateTimingConstraint(self, state: DecodingState):
-        self.maxFrameTransmissionDelay = self.timingConstraints[state]
+        self._maxFrameTransmissionDelay = self._timingConstraints[state]
 
     def _isWithinTimingConstraints(self, octetStartTime: dt) -> bool:
-        return (octetStartTime - self.lastProcessedOctetEndTime) < timedelta(
-            microseconds=self.maxFrameTransmissionDelay)
+        return (octetStartTime - self._lastProcessedOctetEndTime) < timedelta(
+            microseconds=self._maxFrameTransmissionDelay)
 
     def _gotoState(self, state: DecodingState):
-        self.state = state
-        self._updateTimingConstraint(self.state)
+        self._state = state
+        self._updateTimingConstraint(self._state)
 
     def reset(self):
-        self.state: DecodingState = DecodingState.Idle
+        self._state: DecodingState = DecodingState.Idle
 
-    def processOctet(self, octet, start_time: dt, end_time: dt) -> Union[None, MasterMessage, DeviceMessage]:
-        if self.state == DecodingState.Idle or not self._isWithinTimingConstraints(start_time):
-            self.messageDecoder = MasterMessageDecoder(self.settings)
+    def processOctet(self, octet, startTime: dt, endTime: dt) -> Union[None, MasterMessage, DeviceMessage]:
+        if self._state == DecodingState.Idle or not self._isWithinTimingConstraints(startTime):
+            self._messageDecoder = MasterMessageDecoder(self._settings)
             self._gotoState(DecodingState.MasterMessage)
-            self.lastMasterMessage = None
-            self.lastDeviceMessage = None
-        self.lastProcessedOctetEndTime = end_time
+            self._lastMasterMessage = None
+            self._lastDeviceMessage = None
+        self._lastProcessedOctetEndTime = endTime
 
-        if self.state == DecodingState.MasterMessage:
-            if self.messageDecoder.processOctet(octet, start_time, end_time) == MessageState.Finished:
+        if self._state == DecodingState.MasterMessage:
+            if self._messageDecoder.processOctet(octet, startTime, endTime) == MessageState.Finished:
                 self._gotoState(DecodingState.DeviceResponseDelay)
-                self.lastMasterMessage = self.messageDecoder.msg
-                return self.lastMasterMessage
+                self._lastMasterMessage = self._messageDecoder.msg
+                return self._lastMasterMessage
 
-        if self.state == DecodingState.DeviceResponseDelay:
-            self.messageDecoder = DeviceMessageDecoder(self.settings, self.lastMasterMessage.mc.read,
-                                                       self.lastMasterMessage.ckt.mSeqType)
+        if self._state == DecodingState.DeviceResponseDelay:
+            self._lastMasterMessage: MasterMessage  # type hint
+            self._messageDecoder = DeviceMessageDecoder(self._settings, self._lastMasterMessage.mc.read,
+                                                        self._lastMasterMessage.ckt.mSeqType)
             self._gotoState(DecodingState.DeviceMessage)
 
-        if self.state == DecodingState.DeviceMessage:
-            if self.messageDecoder.processOctet(octet, start_time, end_time) == MessageState.Finished:
+        if self._state == DecodingState.DeviceMessage:
+            if self._messageDecoder.processOctet(octet, startTime, endTime) == MessageState.Finished:
                 self._gotoState(DecodingState.Idle)
-                self.lastDeviceMessage = self.messageDecoder.msg
-                return self.lastDeviceMessage
+                self._lastDeviceMessage = self._messageDecoder.msg
+                return self._lastDeviceMessage
 
         return None

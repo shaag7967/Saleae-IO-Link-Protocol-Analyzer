@@ -40,7 +40,7 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
             'format': 'Process {{data.processSource}} {{data.processDir}}'
         },
         'diagREAD': {
-            'format': 'Diagnose {{data.evtStatus}}'
+            'format': 'Diagnose {{data.events}}'
         },
         'diagFINISH': {
             'format': 'Diagnose Reset'

@@ -21,8 +21,8 @@ class CommChannelPage:
         self._octet = 0
 
     def handleMasterMessage(self, message: MasterMessage) -> None:
-        self._startTime = message.start_time
-        self._endTime = message.end_time
+        self._startTime = message.startTime
+        self._endTime = message.endTime
 
         self._direction = TransmissionDirection(message.mc.read)
         self._pageIndex = message.mc.address
@@ -31,7 +31,7 @@ class CommChannelPage:
         return None
 
     def handleDeviceMessage(self, message: DeviceMessage) -> TransactionPage:
-        self._endTime = message.end_time
+        self._endTime = message.endTime
         if self._direction == TransmissionDirection.Read:
             self._octet = message.od[0]
 

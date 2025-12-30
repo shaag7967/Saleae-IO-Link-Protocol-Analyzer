@@ -17,8 +17,8 @@ class MSequenceHandler:
 
         return [AnalyzerFrame(
             'mseqMASTER',
-            SaleaeTime(msg.start_time),
-            SaleaeTime(msg.end_time),
+            SaleaeTime(msg.startTime),
+            SaleaeTime(msg.endTime),
             data
         )]
 
@@ -33,8 +33,8 @@ class MSequenceHandler:
 
         return [AnalyzerFrame(
             'mseqDEVICE',
-            SaleaeTime(msg.start_time),
-            SaleaeTime(msg.end_time),
+            SaleaeTime(msg.startTime),
+            SaleaeTime(msg.endTime),
             data
         )]
 
@@ -56,8 +56,8 @@ class ProcessDataHandler:
 
             return [AnalyzerFrame(
                 'pdOUT',
-                SaleaeTime(msg.start_time),
-                SaleaeTime(msg.end_time),
+                SaleaeTime(msg.startTime),
+                SaleaeTime(msg.endTime),
                 data
             )]
         return []
@@ -73,8 +73,8 @@ class ProcessDataHandler:
 
             return [AnalyzerFrame(
                 'pdIN',
-                SaleaeTime(msg.start_time),
-                SaleaeTime(msg.end_time),
+                SaleaeTime(msg.startTime),
+                SaleaeTime(msg.endTime),
                 data
             )]
         return []

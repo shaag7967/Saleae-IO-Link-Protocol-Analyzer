@@ -21,96 +21,104 @@ class DecodingState(IntEnum):
 
 class MasterMessageDecoder:
     def __init__(self, settings: DecoderSettings):
-        self.settings: DecoderSettings = settings
-        self.octetCount: int = 0
-        self.pdOutLen: int = 0
-        self.odLen: int = 0
+        self._settings: DecoderSettings = settings
+        self._octetCount: int = 0
+        self._pdOutLen: int = 0
+        self._odLen: int = 0
 
-        self.msg: MasterMessage = MasterMessage()
+        self._msg: MasterMessage = MasterMessage()
 
-    def _calculateChecksum(self):
-        checksum = 0x52
-        checksum ^= self.msg.mc.get()
-        checksum ^= self.msg.ckt.getWithoutChecksum()
-        for b in self.msg.pdOut:
-            checksum ^= b
-        for b in self.msg.od:
-            checksum ^= b
-        return lookup_8to6_compression[checksum]
+    @property
+    def msg(self):
+        return self._msg
 
-    def processOctet(self, octet, start_time: dt, end_time: dt) -> MessageState:
+    def processOctet(self, octet, startTime: dt, endTime: dt) -> MessageState:
         if not self._isComplete():
-            if self.octetCount == 0:
-                self.msg.start_time = start_time
-                self.msg.mc = MC.from_buffer_copy(bytes([octet]), 0)
-            elif self.octetCount == 1:
-                self.msg.ckt = CKT.from_buffer_copy(bytes([octet]), 0)
+            if self._octetCount == 0:
+                self._msg.startTime = startTime
+                self._msg.mc = MC.from_buffer_copy(bytes([octet]), 0)
+            elif self._octetCount == 1:
+                self._msg.ckt = CKT.from_buffer_copy(bytes([octet]), 0)
 
-                payloadLength = self.settings.getPayloadLength(self.msg.ckt.mSeqType)
-                self.pdOutLen = payloadLength.pdOut
-                self.odLen = payloadLength.od if self.msg.mc.read == 0 else 0
-            elif len(self.msg.pdOut) < self.pdOutLen:
-                self.msg.pdOut.append(octet)
-            elif len(self.msg.od) < self.odLen:
-                self.msg.od.append(octet)
+                payloadLength = self._settings.getPayloadLength(self._msg.ckt.mSeqType)
+                self._pdOutLen = payloadLength.pdOut
+                self._odLen = payloadLength.od if self._msg.mc.read == 0 else 0
+            elif len(self._msg.pdOut) < self._pdOutLen:
+                self._msg.pdOut.append(octet)
+            elif len(self._msg.od) < self._odLen:
+                self._msg.od.append(octet)
 
-            self.octetCount += 1
-            self.msg.end_time = end_time
+            self._octetCount += 1
+            self._msg.endTime = endTime
 
         if self._isComplete():
-            self.msg.isValid = (self.msg.ckt.checksum == self._calculateChecksum())
+            self._msg.isValid = (self._msg.ckt.checksum == self._calculateChecksum())
             return MessageState.Finished
         else:
             return MessageState.Incomplete
 
+    def _calculateChecksum(self):
+        checksum = 0x52
+        checksum ^= self._msg.mc.get()
+        checksum ^= self._msg.ckt.getWithoutChecksum()
+        for b in self._msg.pdOut:
+            checksum ^= b
+        for b in self._msg.od:
+            checksum ^= b
+        return lookup_8to6_compression[checksum]
+
     def _isComplete(self):
-        return ((self.octetCount >= 2) and
-                len(self.msg.pdOut) == self.pdOutLen and
-                len(self.msg.od) == self.odLen)
+        return ((self._octetCount >= 2) and
+                len(self._msg.pdOut) == self._pdOutLen and
+                len(self._msg.od) == self._odLen)
 
 
 class DeviceMessageDecoder:
     def __init__(self, settings: DecoderSettings, read: int, mSeqType: int):
-        self.settings: DecoderSettings = settings
-        self.octetCount: int = 0
+        self._settings: DecoderSettings = settings
+        self._octetCount: int = 0
 
-        self.msg: DeviceMessage = DeviceMessage()
+        self._msg: DeviceMessage = DeviceMessage()
 
-        payloadLength = self.settings.getPayloadLength(mSeqType)
-        self.odLen: int = payloadLength.od if read == 1 else 0
-        self.pdInLen: int = payloadLength.pdIn
+        payloadLength = self._settings.getPayloadLength(mSeqType)
+        self._odLen: int = payloadLength.od if read == 1 else 0
+        self._pdInLen: int = payloadLength.pdIn
 
-    def _calculateChecksum(self):
-        checksum = 0x52
-        for b in self.msg.od:
-            checksum ^= b
-        for b in self.msg.pdIn:
-            checksum ^= b
-        checksum ^= self.msg.cks.getWithoutChecksum()
-        return lookup_8to6_compression[checksum]
+    @property
+    def msg(self):
+        return self._msg
 
     def processOctet(self, octet, start_time: dt, end_time: dt) -> MessageState:
         if not self._isComplete():
-            if self.octetCount == 0:
-                self.msg.start_time = start_time
+            if self._octetCount == 0:
+                self._msg.startTime = start_time
 
-            if len(self.msg.od) < self.odLen:
-                self.msg.od.append(octet)
-            elif len(self.msg.pdIn) < self.pdInLen:
-                self.msg.pdIn.append(octet)
+            if len(self._msg.od) < self._odLen:
+                self._msg.od.append(octet)
+            elif len(self._msg.pdIn) < self._pdInLen:
+                self._msg.pdIn.append(octet)
             else:
-                self.msg.cks = CKS.from_buffer_copy(bytes([octet]), 0)
+                self._msg.cks = CKS.from_buffer_copy(bytes([octet]), 0)
 
-            self.octetCount += 1
-            self.msg.end_time = end_time
+            self._octetCount += 1
+            self._msg.endTime = end_time
 
         if self._isComplete():
-            self.msg.isValid = (self.msg.cks.checksum == self._calculateChecksum())
+            self._msg.isValid = (self._msg.cks.checksum == self._calculateChecksum())
             return MessageState.Finished
         else:
             return MessageState.Incomplete
 
+    def _calculateChecksum(self):
+        checksum = 0x52
+        for b in self._msg.od:
+            checksum ^= b
+        for b in self._msg.pdIn:
+            checksum ^= b
+        checksum ^= self._msg.cks.getWithoutChecksum()
+        return lookup_8to6_compression[checksum]
+
     def _isComplete(self):
-        return (self.octetCount == (self.pdInLen + self.odLen + 1) and
-                len(self.msg.pdIn) == self.pdInLen and
-                len(self.msg.od) == self.odLen)
+        return (self._octetCount == (self._pdInLen + self._odLen + 1) and
+                len(self._msg.pdIn) == self._pdInLen and
+                len(self._msg.od) == self._odLen)

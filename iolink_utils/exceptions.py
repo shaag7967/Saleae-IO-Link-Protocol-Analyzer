@@ -80,3 +80,15 @@ class InvalidISDUService(IOLinkUtilsException):
 
 class InvalidBitCount(IOLinkUtilsException):
     """Raised if the number of bits is not as expected"""
+
+
+class UnexpectedMasterMessageReceived(IOLinkUtilsException):
+    """Raised if an unexpected/invalid master message was received"""
+
+
+class UnknownISDUError(IOLinkUtilsException):
+    """Raised if an unknown ISDU error was detected"""
+
+
+class ISDULengthUnknown(IOLinkUtilsException):
+    """Raised if an unknown ISDU error was detected"""
