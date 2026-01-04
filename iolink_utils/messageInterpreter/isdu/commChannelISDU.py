@@ -1,11 +1,12 @@
 from enum import IntEnum
-from typing import Optional, Callable, Dict
+from typing import Optional, Callable
 from datetime import datetime as dt
 
 from iolink_utils.octetStreamDecoder.octetStreamDecoderMessages import (
     DeviceMessage,
     MasterMessage,
 )
+from iolink_utils.exceptions import InvalidISDUMessage
 from iolink_utils.octetDecoder.octetDecoder import IService
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
 from iolink_utils.definitions.iServiceNibble import IServiceNibble
@@ -56,7 +57,6 @@ class CommChannelISDU:
         if handler:
             handler(message, flowControl)
 
-        self._previousFlowControl = self._flowControl.copy()
         self._flowControl = flowControl
 
     def handleDeviceMessage(self, message: DeviceMessage) -> Optional[ISDU]:
@@ -68,7 +68,9 @@ class CommChannelISDU:
         }.get(self._state)
 
         if handler:
-            return handler(message)
+            isdu = handler(message)
+            self._previousFlowControl = self._flowControl.copy()
+            return isdu
 
         return None
 
@@ -98,7 +100,8 @@ class CommChannelISDU:
         if flow.state != FlowControl.State.Count:
             return
 
-        self.raiseIfOnRequestDataIsMissing(message)
+        if self._direction == TransmissionDirection.Write:
+            self.raiseIfOnRequestDataIsMissing(message)
 
         if not self.appendOnRequestData(self._isduRequest, flow, self._flowControl, message.od):
             self.reset()
@@ -171,7 +174,7 @@ class CommChannelISDU:
     @staticmethod
     def raiseIfOnRequestDataIsMissing(message) -> None:
         if not message.od:
-            raise ValueError("Message has no OD data")
+            raise InvalidISDUMessage("OnRequest data missing")
 
     @staticmethod
     def getService(message) -> IService:

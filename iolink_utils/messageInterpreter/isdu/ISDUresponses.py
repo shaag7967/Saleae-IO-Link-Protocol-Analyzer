@@ -11,6 +11,8 @@ from iolink_utils.messageInterpreter.isdu.ISDUerrors import IsduError
 #
 
 class ISDUResponse_WriteResp_M(ISDU):
+    _SERVICE_NIBBLE: IServiceNibble = IServiceNibble.D_WriteResp_M
+
     def __init__(self):
         super().__init__()
         self.errorCode: int = 0
@@ -18,17 +20,17 @@ class ISDUResponse_WriteResp_M(ISDU):
         self.isduError: IsduError = IsduError.UNDEFINED
 
     def _onFinished(self):
-        self.errorCode = int(self._rawData[1])
-        self.additionalCode = int(self._rawData[2])
-        try:
-            self.isduError = IsduError.fromCodes(self.errorCode, self.additionalCode)
-        except ValueError:
-            raise UnknownISDUError(f"Unknown ISDU error: "
-                                   f"errorCode={hex(self.errorCode)} "
-                                   f"additionalCode={hex(self.additionalCode)}") from None
-
-    def name(self) -> str:
-        return 'WriteResp_M'
+        if not self._hasExtendedLength() and len(self._rawData) == 4:
+            self.errorCode = int(self._rawData[1])
+            self.additionalCode = int(self._rawData[2])
+            try:
+                self.isduError = IsduError.fromCodes(self.errorCode, self.additionalCode)
+            except ValueError:
+                raise UnknownISDUError(f"Unknown ISDU error: "
+                                       f"errorCode={hex(self.errorCode)} "
+                                       f"additionalCode={hex(self.additionalCode)}") from None
+        else:
+            self._isValid = False
 
     def data(self) -> dict:
         return {
@@ -36,28 +38,21 @@ class ISDUResponse_WriteResp_M(ISDU):
             'error': f"{self.isduError.name}({hex(self.errorCode)}, {hex(self.additionalCode)})"
         }
 
-    def __str__(self):  # pragma: no cover
-        return (f"ISDUResponse_WriteResp_M(errorCode={self.errorCode} "
-                f"additionalCode={self.additionalCode} data={self._rawData.hex()})")
-
 
 class ISDUResponse_WriteResp_P(ISDU):
+    _SERVICE_NIBBLE: IServiceNibble = IServiceNibble.D_WriteResp_P
+
     def __init__(self):
         super().__init__()
 
     def _onFinished(self):
-        pass
-
-    def name(self) -> str:
-        return 'WriteResp_P'
+        if self._hasExtendedLength() or len(self._rawData) != 2:
+            self._isValid = False
 
     def data(self) -> dict:
         return {
             'valid': self.isValid
         }
-
-    def __str__(self):  # pragma: no cover
-        return f"ISDUResponse_WriteResp_P(data={self._rawData.hex()})"
 
 
 #
@@ -65,6 +60,8 @@ class ISDUResponse_WriteResp_P(ISDU):
 #
 
 class ISDUResponse_ReadResp_M(ISDU):
+    _SERVICE_NIBBLE: IServiceNibble = IServiceNibble.D_ReadResp_M
+
     def __init__(self):
         super().__init__()
         self.errorCode: int = 0
@@ -72,17 +69,17 @@ class ISDUResponse_ReadResp_M(ISDU):
         self.isduError: IsduError = IsduError.UNDEFINED
 
     def _onFinished(self):
-        self.errorCode = int(self._rawData[1])
-        self.additionalCode = int(self._rawData[2])
-        try:
-            self.isduError = IsduError.fromCodes(self.errorCode, self.additionalCode)
-        except ValueError:
-            raise UnknownISDUError(f"Unknown ISDU error: "
-                                   f"errorCode={hex(self.errorCode)} "
-                                   f"additionalCode={hex(self.additionalCode)}") from None
-
-    def name(self) -> str:
-        return 'ReadResp_M'
+        if not self._hasExtendedLength() and len(self._rawData) == 4:
+            self.errorCode = int(self._rawData[1])
+            self.additionalCode = int(self._rawData[2])
+            try:
+                self.isduError = IsduError.fromCodes(self.errorCode, self.additionalCode)
+            except ValueError:
+                raise UnknownISDUError(f"Unknown ISDU error: "
+                                       f"errorCode={hex(self.errorCode)} "
+                                       f"additionalCode={hex(self.additionalCode)}") from None
+        else:
+            self._isValid = False
 
     def data(self) -> dict:
         return {
@@ -90,29 +87,21 @@ class ISDUResponse_ReadResp_M(ISDU):
             'error': f"{self.isduError.name}({hex(self.errorCode)}, {hex(self.additionalCode)})"
         }
 
-    def __str__(self):  # pragma: no cover
-        return (f"ISDUResponse_ReadResp_M(errorCode={self.errorCode} "
-                f"additionalCode={self.additionalCode} data={self._rawData.hex()})")
-
 
 class ISDUResponse_ReadResp_P(ISDU):
+    _SERVICE_NIBBLE: IServiceNibble = IServiceNibble.D_ReadResp_P
+
     def __init__(self):
         super().__init__()
 
     def _onFinished(self):
         pass
 
-    def name(self) -> str:
-        return 'ReadResp_P'
-
     def data(self) -> dict:
         return {
             'valid': self.isValid,
             'data': self._rawData[2:-1] if self._hasExtendedLength() else self._rawData[1:-1]
         }
-
-    def __str__(self):  # pragma: no cover
-        return f"ISDUResponse_ReadResp_P(data={self._rawData.hex()})"
 
 
 def createISDUResponse(iService: IService):

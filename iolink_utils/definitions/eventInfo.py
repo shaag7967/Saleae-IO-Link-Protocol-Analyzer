@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-# used with octetDecoder EventQualifier
+# used by octetDecoder EventQualifier
 
 # See Table A.17 – Values of INSTANCE
 class EventInstance(IntEnum):

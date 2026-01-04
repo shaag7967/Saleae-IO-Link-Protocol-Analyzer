@@ -1,22 +1,6 @@
 from typing import Tuple, List
 from dataclasses import dataclass
 
-"""
-    <DeviceIdentity vendorId="65535" deviceId="1" vendorName="IO-Link Community">
-      <VendorText textId="T_VendorText"/>
-      <VendorUrl textId="T_VendorUrl"/>
-      <VendorLogo name="IO-Link-logo.png"/>
-      <DeviceName textId="T_DeviceName"/>
-      <DeviceFamily textId="T_DeviceFamily"/>
-      <DeviceVariantCollection>
-        <DeviceVariant productId="ioddsample01" deviceSymbol="IO-Link-Device-pic.png" deviceIcon="IO-Link-Device-icon.png">
-          <Name textId="TN_ProductName"/>
-          <Description textId="TD_ProductDescr"/>
-        </DeviceVariant>
-      </DeviceVariantCollection>
-    </DeviceIdentity>
-"""
-
 
 @dataclass
 class DeviceVariant:

@@ -92,3 +92,7 @@ class UnknownISDUError(IOLinkUtilsException):
 
 class ISDULengthUnknown(IOLinkUtilsException):
     """Raised if an unknown ISDU error was detected"""
+
+
+class InvalidISDUMessage(IOLinkUtilsException):
+    """Raised if an invalid (master/device) message was detected"""

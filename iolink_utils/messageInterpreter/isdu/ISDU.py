@@ -1,6 +1,8 @@
 from datetime import datetime as dt
 from abc import abstractmethod
 
+from iolink_utils.exceptions import InvalidISDUService
+from iolink_utils.definitions.iServiceNibble import IServiceNibble
 from iolink_utils.octetDecoder.octetDecoder import IService
 from iolink_utils.messageInterpreter.transaction import Transaction
 
@@ -30,7 +32,10 @@ class ISDU(Transaction):
         return self._service.length == 1
 
     def _getTotalLength(self):
-        return int(self._rawData[1]) if self._hasExtendedLength() else self._service.length
+        if self._hasExtendedLength():
+            return int(self._rawData[1]) if len(self._rawData) > 1 else 0xFF
+        else:
+            return self._service.length
 
     def _calculateCheckByte(self) -> int:
         chk = 0
@@ -41,6 +46,8 @@ class ISDU(Transaction):
     def _updateInternalData(self):
         if len(self._rawData) > 0:
             self._service = IService(int(self._rawData[0]))
+            if self._SERVICE_NIBBLE != self._service.service:
+                raise InvalidISDUService(f"Service value {hex(self._service.service)} not expected ({self._SERVICE_NIBBLE})")
 
         targetLength = self._getTotalLength()
         if len(self._rawData) >= targetLength:
@@ -64,10 +71,20 @@ class ISDU(Transaction):
     def dispatch(self, handler):
         return handler.handleISDU(self)
 
-    @abstractmethod
-    def name(self) -> str:  # pragma: no cover
-        return 'ISDU'
+    def name(self) -> str:
+        return self.__class__.__name__
+
+    def _dataAsString(self) -> str:  # pragma: no cover
+        return ", ".join(f"{name}={value}" for name, value in self.data().items())
+
+    def __str__(self):  # pragma: no cover
+        return f"{self.name()}({self._dataAsString()})"
 
     @abstractmethod
     def _onFinished(self) -> None:  # pragma: no cover
         pass
+
+    @property
+    @abstractmethod
+    def _SERVICE_NIBBLE(self) -> IServiceNibble:  # pragma: no cover
+        return IServiceNibble.NoService
