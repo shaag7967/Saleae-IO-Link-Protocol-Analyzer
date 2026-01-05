@@ -20,60 +20,22 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
     analyzer_mode_setting = ChoicesSetting(AnalyzerMode.descriptions())
     process_data_condition = StringSetting(label='Condition value to select ProcessData definition (default: empty)')
 
+    # only result types with a special display format are listed. Everything else just shows content of data dictionary
     result_types = {
-        'mseqMASTER': {
-            'format': 'MST {{data.mc}} {{data.ckt}} OD({{data.od}}) PD({{data.pdOut}})'
+        'PD in': {
+            'format': 'PDin({{data.pdIn}})'
         },
-        'mseqDEVICE': {
-            'format': 'DEV OD({{data.od}}) PD({{data.pdIn}}) {{data.cks}}'
+        'PD out': {
+            'format': 'PDout({{data.pdOut}})'
         },
-        'pdIN': {
-            'format': 'PDIn {{data.pdIn}}'
+        'Page': {
+            'format': 'Page({{data.pageDir}} {{data.pageInfo}})'
         },
-        'pdOUT': {
-            'format': 'PDOut {{data.pdOut}}'
+        'DiagRead': {
+            'format': 'Diagnosis({{data.events}})'
         },
-        'page': {
-            'format': 'Page {{data.pageDir}} {{data.pageInfo}}'
-        },
-        'process': {  # communication channel Process currently not used
-            'format': 'Process {{data.processSource}} {{data.processDir}}'
-        },
-        'diagREAD': {
-            'format': 'Diagnose {{data.events}}'
-        },
-        'diagFINISH': {
-            'format': 'Diagnose Reset'
-        },
-        'Write8bitIdx': {
-            'format': 'Write8bitIdx valid={{data.valid}} index={{data.index}} data={{data.data}}'
-        },
-        'Write8bitIdxSub': {
-            'format': 'Write8bitIdxSub valid={{data.valid}} index={{data.index}} subIndex={{data.subIndex}} data={{data.data}}'
-        },
-        'Write16bitIdxSub': {
-            'format': 'Write16bitIdxSub valid={{data.valid}} index={{data.index}} subIndex={{data.subIndex}} data={{data.data}}'
-        },
-        'Read8bitIdx': {
-            'format': 'Read8bitIdx valid={{data.valid}} index={{data.index}}'
-        },
-        'Read8bitIdxSub': {
-            'format': 'Read8bitIdxSub valid={{data.valid}} index={{data.index}} subIndex={{data.subIndex}}'
-        },
-        'Read16bitIdxSub': {
-            'format': 'Read16bitIdxSub valid={{data.valid}} index={{data.index}} subIndex={{data.subIndex}}'
-        },
-        'WriteResp_M': {
-            'format': 'WriteResp_M valid={{data.valid}} errorCode={{data.errorCode}} additionalCode={{data.additionalCode}}'
-        },
-        'WriteResp_P': {
-            'format': 'WriteResp_P valid={{data.valid}}'
-        },
-        'ReadResp_M': {
-            'format': 'ReadResp_M valid={{data.valid}} errorCode={{data.errorCode}} additionalCode={{data.additionalCode}}'
-        },
-        'ReadResp_P': {
-            'format': 'ReadResp_P valid={{data.valid}} data={{data.data}}'
+        'DiagReset': {
+            'format': 'Diagnosis(Reset)'
         }
     }
 

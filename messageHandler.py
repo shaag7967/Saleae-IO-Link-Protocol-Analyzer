@@ -16,7 +16,7 @@ class MSequenceHandler:
             data['od'] = bytes(msg.od).hex()
 
         return [AnalyzerFrame(
-            'mseqMASTER',
+            'MasterMsg',
             SaleaeTime(msg.startTime),
             SaleaeTime(msg.endTime),
             data
@@ -32,7 +32,7 @@ class MSequenceHandler:
             data['pdIn'] = bytes(msg.pdIn).hex()
 
         return [AnalyzerFrame(
-            'mseqDEVICE',
+            'DeviceMsg',
             SaleaeTime(msg.startTime),
             SaleaeTime(msg.endTime),
             data
@@ -55,7 +55,7 @@ class ProcessDataHandler:
                 data[field_name] = str(getattr(decodedPD, field_name))  # str otherwise value will be shown as hex
 
             return [AnalyzerFrame(
-                'pdOUT',
+                'PD out',
                 SaleaeTime(msg.startTime),
                 SaleaeTime(msg.endTime),
                 data
@@ -72,7 +72,7 @@ class ProcessDataHandler:
                 data[field_name] = str(getattr(decodedPD, field_name))  # str otherwise value will be shown as hex
 
             return [AnalyzerFrame(
-                'pdIN',
+                'PD in',
                 SaleaeTime(msg.startTime),
                 SaleaeTime(msg.endTime),
                 data

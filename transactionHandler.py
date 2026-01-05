@@ -27,7 +27,7 @@ class TransactionHandler:
 class DiagnosisHandler(TransactionHandler):
     def handleDiagEventMemory(self, transaction: TransactionDiagEventMemory):
         return [AnalyzerFrame(
-            'diagREAD',
+            'DiagRead',
             SaleaeTime(transaction.startTime),
             SaleaeTime(transaction.endTime),
             transaction.data()
@@ -35,7 +35,7 @@ class DiagnosisHandler(TransactionHandler):
 
     def handleDiagEventReset(self, transaction: TransactionDiagEventReset):
         return [AnalyzerFrame(
-            'diagFINISH',
+            'DiagReset',
             SaleaeTime(transaction.startTime),
             SaleaeTime(transaction.endTime),
             transaction.data()
@@ -45,7 +45,7 @@ class DiagnosisHandler(TransactionHandler):
 class PageHandler(TransactionHandler):
     def handlePage(self, transaction: TransactionPage):
         return [AnalyzerFrame(
-            'page',
+            'Page',
             SaleaeTime(transaction.startTime),
             SaleaeTime(transaction.endTime),
             transaction.data()
@@ -65,7 +65,7 @@ class ISDUHandler(TransactionHandler):
 class ProcessHandler(TransactionHandler):
     def handleProcess(self, transaction: TransactionProcess):
         return [AnalyzerFrame(
-            'process',
+            'Process',
             SaleaeTime(transaction.startTime),
             SaleaeTime(transaction.endTime),
             transaction.data()
