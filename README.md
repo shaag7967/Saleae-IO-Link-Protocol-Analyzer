@@ -37,14 +37,14 @@ In order to decode IO-Link traffic, you need to attach your
 IO-Link device. Use a voltage divider to reduce the 24V (or higher) to e.g. 3V levels. The 
 IO-Link traffic can then be interpreted as a UART signal (with Rx and Tx on the same wire).
 
-<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/iolSniffingSetup.drawio.png?raw=true" width="70%" alt="IO-Link Sniffing Setup">
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/iolSniffingSetup.drawio.png?raw=true" width="80%" alt="IO-Link Sniffing Setup">
 
 ### Decoding UART frames (C/Q wire)
 
 In the first step, the signal on the C/Q wire is interpreted as UART using the builtin "Async Serial" analyzer. You have
 to set the correct settings matching your IO-Link communication speed.
 
-<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_asyncSerialAnalyzerSettings_COM2.drawio.png?raw=true" width="70%" alt="async serial analyzer settings">
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_asyncSerialAnalyzerSettings_COM2.drawio.png?raw=true" width="80%" alt="async serial analyzer settings">
 
 ### Adding IO-Link Protocol Analyzer(s)
 
