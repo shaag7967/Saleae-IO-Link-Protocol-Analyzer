@@ -30,27 +30,40 @@ When adding a new analyzer, there is now an entry "IO-Link Protocol Analyzer" in
 
 ## Getting started
 
-### Sniffing hardware setup
+### Hardware setup
 
 In order to decode IO-Link traffic, you need to attach your 
 [Saleae Logic Analyzer](https://saleae.com/logic) to the C/Q wire between the IO-Link Master and the 
-IO-Link device. Use a voltage divider to reduce the 24V (or higher) to e.g. 3V levels. The 
+IO-Link device. Use a voltage divider to reduce the 24V to e.g. 3V levels. The 
 IO-Link traffic can then be interpreted as a UART signal (with Rx and Tx on the same wire).
 
 <img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/iolSniffingSetup.drawio.png?raw=true" width="80%" alt="IO-Link Sniffing Setup">
 
 ### Decoding UART frames (C/Q wire)
 
-In the first step, the signal on the C/Q wire is interpreted as UART using the builtin "Async Serial" analyzer. You have
-to set the correct settings matching your IO-Link communication speed.
+First, the C/Q wire signal is decoded as UART via the built-in 'Async Serial' analyzer. You must configure the 
+settings to correspond with your IO-Link transmission rate.
 
 <img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_asyncSerialAnalyzerSettings_COM2.drawio.png?raw=true" width="80%" alt="async serial analyzer settings">
 
 ### Adding IO-Link Protocol Analyzer(s)
 
-To give these UART frames a meaning, you add one or more IO-Link Protocol Analyzer. Every analyzer is giving you only 
-one type of information. E.g. if you want to see Diagnosis and ISDU data, add an analyzer for the Diagnosis data 
-and another one for the ISDU data.
+To interpret these UART frames, you can add one or more IO-Link Protocol Analyzers. Each analyzer provides a 
+specific type of information. For example, if you want to monitor both diagnostic and ISDU data, you would add 
+one analyzer for the diagnostic data and a second one for the ISDU data.
+
+#### M-Sequences
+
+
+
+#### Process Data
+
+#### Events / Diagnosis
+
+#### Direct Parameter (Page 1)
+
+#### Indexed Service Data Unit (ISDU)
+
 
 > If you want to change the output type (Analyzer Mode) later, you can do this by editing the analyzer settings.
 
