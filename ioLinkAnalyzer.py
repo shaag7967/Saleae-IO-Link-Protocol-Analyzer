@@ -13,6 +13,7 @@ from iolink_utils.exceptions import IOLinkUtilsException
 from analyzerMode import AnalyzerMode
 from messageHandler import MSequenceHandler, ProcessDataHandler
 from transactionHandler import DiagnosisHandler, PageHandler, ISDUHandler
+from automaticSettingsHandler import AutomaticSettingsHandler
 
 
 class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
@@ -66,6 +67,10 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         settings = DecoderSettings.fromIODD(self.iodd)
         self.decoder = OctetStreamDecoder(settings)
         self.interpreter = MessageInterpreter()
+        self.automaticSettingsHandler = AutomaticSettingsHandler(
+            getter=lambda: self.decoder.settings,
+            setter=self._setDecoderSettings
+        )
 
         self.printAnalyzerSettings()
 
@@ -80,9 +85,17 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         pprint(self.iodd.processDataDefinition)
 
         print(f"M-Sequence payload sizes")
+        self._printDecoderSettings()
+
+    def _printDecoderSettings(self):
         print(f"   Startup:    {self.decoder.settings.startup}")
         print(f"   Preoperate: {self.decoder.settings.preoperate}")
         print(f"   Operate:    {self.decoder.settings.operate}")
+
+    def _setDecoderSettings(self, settings: DecoderSettings):
+        self.decoder.setSettings(settings)
+        print(f"M-Sequence payload sizes (updated)")
+        self._printDecoderSettings()
 
     def _dispatchMessage(self, message):
         if message is None:
@@ -98,6 +111,8 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         transaction = self.interpreter.processMessage(message)
         if transaction is None:
             return []
+
+        transaction.dispatch(self.automaticSettingsHandler)
 
         if self.analyzerMode == AnalyzerMode.Diagnosis:
             return transaction.dispatch(DiagnosisHandler())
@@ -124,7 +139,7 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
                 frame.end_time.as_datetime()
             )
             return self._dispatchMessage(message)
-        except IOLinkUtilsException as e:
+        except (IOLinkUtilsException, ValueError, IndexError) as e:
             print(e)
             self.decoder.reset()
             self.interpreter.reset()

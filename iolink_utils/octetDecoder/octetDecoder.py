@@ -1,3 +1,5 @@
+from math import ceil
+
 from ._octetDecoderBase import OctetDecoderBase, ctypes
 from iolink_utils.definitions.communicationChannel import CommChannel
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
@@ -112,6 +114,13 @@ class ProcessDataIn(OctetDecoderBase):
         ("length", ctypes.c_uint8, 5)
     ]
 
+    # TODO fix invalid combinations
+    def size(self) -> int:
+        if self.byte == 0:  # bits
+            return int(ceil(self.length / 8))
+        else:  # octets
+            return self.length + 1
+
 
 class ProcessDataOut(OctetDecoderBase):
     _fields_ = [
@@ -119,6 +128,13 @@ class ProcessDataOut(OctetDecoderBase):
         ("unused", ctypes.c_uint8, 2),
         ("length", ctypes.c_uint8, 5)
     ]
+
+    # TODO fix invalid combinations
+    def size(self) -> int:
+        if self.byte == 0:  # bits
+            return int(ceil(self.length / 8))
+        else:  # octets
+            return self.length + 1
 
 
 # See Table B.10 – DataStorageIndex assignments
