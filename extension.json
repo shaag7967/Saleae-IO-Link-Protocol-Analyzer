@@ -2,7 +2,7 @@
   "name": "IO-Link Protocol Analyzer",
   "apiVersion": "1.0.0",
   "author": "Sebastian Haag",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "extensions": {
     "IO-Link Protocol Analyzer": {
