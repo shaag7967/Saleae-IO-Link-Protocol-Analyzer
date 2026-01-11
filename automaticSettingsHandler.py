@@ -4,6 +4,7 @@ from transactionHandler import TransactionHandler
 
 from iolink_utils.definitions.transmissionDirection import TransmissionDirection
 from iolink_utils.definitions.onRequestDataOctetCount import ODOctetCount
+from iolink_utils.definitions.directParameterPage import DirectParameterPage1Index
 from iolink_utils.utils.calculateProcessDataLength import calculateProcessDataLength
 from iolink_utils.octetDecoder.octetDecoder import MSequenceCapability, ProcessDataIn, ProcessDataOut
 from iolink_utils.octetStreamDecoder.octetStreamDecoderSettings import DecoderSettings
@@ -15,10 +16,6 @@ SetterType = Callable[[DecoderSettings], None]
 
 
 class AutomaticSettingsHandler(TransactionHandler):
-    IDX_MSEQ_CAPABILITY = 3
-    IDX_PROCESS_DATA_IN = 5
-    IDX_PROCESS_DATA_OUT = 6
-
     def __init__(self, getter: GetterType, setter: SetterType):
         super().__init__()
         self._getSettings = getter
@@ -70,9 +67,9 @@ class AutomaticSettingsHandler(TransactionHandler):
             return []
 
         handlers: Dict[int, Callable[[DecoderSettings, int], DecoderSettings]] = {
-            self.IDX_MSEQ_CAPABILITY: self._update_mseq,
-            self.IDX_PROCESS_DATA_IN: self._update_pdIn,
-            self.IDX_PROCESS_DATA_OUT: self._update_pdOut,
+            DirectParameterPage1Index.MSequenceCapability.value: self._update_mseq,
+            DirectParameterPage1Index.ProcessDataIn.value: self._update_pdIn,
+            DirectParameterPage1Index.ProcessDataOut.value: self._update_pdOut,
         }
 
         updateHandler = handlers.get(transaction.index)
