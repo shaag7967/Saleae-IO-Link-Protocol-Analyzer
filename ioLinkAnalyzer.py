@@ -101,25 +101,24 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
         if message is None:
             return []
 
+        # interpret messages
+        transaction = self.interpreter.processMessage(message)
+        if transaction:
+            transaction.dispatch(self.automaticSettingsHandler)  # this updates decoder settings
+
+            # convert transactions into saleae frames
+            if self.analyzerMode == AnalyzerMode.Diagnosis:
+                return transaction.dispatch(DiagnosisHandler())
+            if self.analyzerMode == AnalyzerMode.Page:
+                return transaction.dispatch(PageHandler())
+            if self.analyzerMode == AnalyzerMode.ISDU:
+                return transaction.dispatch(ISDUHandler())
+
         # convert messages into saleae frames
         if self.analyzerMode == AnalyzerMode.MSequence:
             return message.dispatch(MSequenceHandler())
         if self.analyzerMode == AnalyzerMode.ProcessData:
             return message.dispatch(ProcessDataHandler(self.decoder, self.DecoderPDOut, self.DecoderPDIn))
-
-        # interpret messages
-        transaction = self.interpreter.processMessage(message)
-        if transaction is None:
-            return []
-
-        transaction.dispatch(self.automaticSettingsHandler)
-
-        if self.analyzerMode == AnalyzerMode.Diagnosis:
-            return transaction.dispatch(DiagnosisHandler())
-        if self.analyzerMode == AnalyzerMode.Page:
-            return transaction.dispatch(PageHandler())
-        if self.analyzerMode == AnalyzerMode.ISDU:
-            return transaction.dispatch(ISDUHandler())
 
         return []
 

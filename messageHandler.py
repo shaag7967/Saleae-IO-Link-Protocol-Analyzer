@@ -46,7 +46,7 @@ class ProcessDataHandler:
         self.DecoderPDIn = DecoderPDIn
 
     def handleMasterMessage(self, msg: MasterMessage):
-        if self.decoder.settings.operate.pdOut == len(msg.pdOut):
+        if self.decoder.settings.operate.pdOut > 0 and self.decoder.settings.operate.pdOut == len(msg.pdOut):
             decodedPD = self.DecoderPDOut.from_buffer_copy(msg.pdOut)
             data = {
                 'pdOut': msg.pdOut.hex()
@@ -63,7 +63,7 @@ class ProcessDataHandler:
         return []
 
     def handleDeviceMessage(self, msg: DeviceMessage):
-        if self.decoder.settings.operate.pdIn == len(msg.pdIn):
+        if self.decoder.settings.operate.pdOut > 0 and self.decoder.settings.operate.pdIn == len(msg.pdIn):
             decodedPD = self.DecoderPDIn.from_buffer_copy(msg.pdIn)
             data = {
                 'pdIn': msg.pdIn.hex()

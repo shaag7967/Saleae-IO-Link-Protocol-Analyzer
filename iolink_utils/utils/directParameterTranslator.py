@@ -41,7 +41,7 @@ def translateDirectParameter(index: int, value: int, direction: TransmissionDire
 # -------- helpers --------
 
 def _translateUnknownIndex(index: int, value: int) -> Translation:
-    return Translation(name=f'DirectParameter {index}', value=f'0x{value:0{2}X}', error=f'Index {index} unknown')
+    return Translation(name=f'DirectParameter {index}', value=f'0x{value:02X}', error=f'Index {index} unknown')
 
 
 def _translateCycleTime(name: str, value: int):
@@ -49,7 +49,7 @@ def _translateCycleTime(name: str, value: int):
     try:
         return Translation(name=name, value=f"{CycleTime.decodeToTimeInMs(cto)}ms")
     except InvalidOctetValue:
-        return Translation(name=name, value=f'0x{value:0{2}X}', error='Invalid cycle time')
+        return Translation(name=name, value=f'0x{value:02X}', error='Invalid cycle time')
 
 
 def _translateOctet(octetDecoderClass: Type[OctetDecoderBase], value: int):
@@ -66,7 +66,7 @@ def _translateCommand(commandEnum: Type[IntEnum], value: int, direction: Transmi
         return Translation(name=commandEnum.__name__, value=commandEnum(value).name, error=', '.join(errors))
     except ValueError:
         errors.append(f'Unknown {commandEnum.__name__}')
-        return Translation(name=commandEnum.__name__, value=f'0x{value:0{2}X}', error=', '.join(errors))
+        return Translation(name=commandEnum.__name__, value=f'0x{value:02X}', error=', '.join(errors))
 
 
 def _handleMasterCommand(value: int, direction: TransmissionDirection):
@@ -98,7 +98,7 @@ def _handlePDOut(value: int, direction: TransmissionDirection):
 
 
 def _handleHexValue(label: str, value: int, direction: TransmissionDirection):
-    return Translation(name=label, value=f'0x{value:0{2}X}')
+    return Translation(name=label, value=f'0x{value:02X}')
 
 
 def _handleSystemCommand(value: int, direction: TransmissionDirection):

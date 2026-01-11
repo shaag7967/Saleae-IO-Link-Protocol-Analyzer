@@ -23,7 +23,7 @@ class TransactionPage(Transaction):
         return {
             'pageDir': self.direction.name,
             'pageIndex': str(self.index),
-            'pageValue': f'0x{self.value:0{2}X}',
+            'pageValue': f'0x{self.value:02X}',
             'pageInfo': f'{translation.name}: {translation.value}',
             'pageError': translation.error
         }
