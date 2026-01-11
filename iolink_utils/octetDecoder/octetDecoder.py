@@ -106,6 +106,7 @@ class RevisionId(OctetDecoderBase):
     ]
 
 
+# See B.1.6 ProcessDataIn
 class ProcessDataIn(OctetDecoderBase):
     _fields_ = [
         ("byte", ctypes.c_uint8, 1),
@@ -114,27 +115,14 @@ class ProcessDataIn(OctetDecoderBase):
         ("length", ctypes.c_uint8, 5)
     ]
 
-    # TODO fix invalid combinations
-    def size(self) -> int:
-        if self.byte == 0:  # bits
-            return int(ceil(self.length / 8))
-        else:  # octets
-            return self.length + 1
 
-
+# See B.1.7 ProcessDataOut
 class ProcessDataOut(OctetDecoderBase):
     _fields_ = [
         ("byte", ctypes.c_uint8, 1),
         ("unused", ctypes.c_uint8, 2),
         ("length", ctypes.c_uint8, 5)
     ]
-
-    # TODO fix invalid combinations
-    def size(self) -> int:
-        if self.byte == 0:  # bits
-            return int(ceil(self.length / 8))
-        else:  # octets
-            return self.length + 1
 
 
 # See Table B.10 – DataStorageIndex assignments

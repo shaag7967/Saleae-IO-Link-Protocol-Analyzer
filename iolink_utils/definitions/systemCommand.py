@@ -2,6 +2,7 @@ from enum import IntEnum
 
 
 # See Table B.9 – Coding of SystemCommand
+# See IOL CommonProfile: Table B.2 – Conditional SystemCommand
 class SystemCommand(IntEnum):
     ParamUploadStart = 0x01,
     ParamUploadEnd = 0x02,
@@ -9,6 +10,8 @@ class SystemCommand(IntEnum):
     ParamDownloadEnd = 0x04,
     ParamDownloadStore = 0x05,
     ParamBreak = 0x06,
+    LocatorStart = 0x7E,
+    LocatorStop = 0x7F,
     DeviceReset = 0x80,
     ApplicationReset = 0x81,
     RestoreFactorySettings = 0x82,

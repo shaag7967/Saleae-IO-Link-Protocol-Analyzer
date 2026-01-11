@@ -96,3 +96,7 @@ class ISDULengthUnknown(IOLinkUtilsException):
 
 class InvalidISDUMessage(IOLinkUtilsException):
     """Raised if an invalid (master/device) message was detected"""
+
+
+class InvalidLengthInProcessDataParameter(IOLinkUtilsException):
+    """Raised if value of length (ProcessDataIn / ProcessDataOut) is invalid"""

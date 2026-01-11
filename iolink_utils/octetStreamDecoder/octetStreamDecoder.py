@@ -33,7 +33,7 @@ class OctetStreamDecoder:
         return self._settings
 
     def setSettings(self, settings: DecoderSettings):
-        self._settings = settings
+        self._settings = copy.deepcopy(settings)
 
     def _updateTimingConstraint(self, state: DecodingState):
         self._maxFrameTransmissionDelay = self._timingConstraints[state]
