@@ -1,3 +1,18 @@
+<!-- TOC -->
+* [IO-Link Protocol Analyzer](#io-link-protocol-analyzer)
+  * [Installation](#installation)
+  * [Getting started](#getting-started)
+    * [Hardware setup](#hardware-setup)
+    * [Decoding UART frames (C/Q wire)](#decoding-uart-frames-cq-wire)
+    * [Adding IO-Link Protocol Analyzer(s)](#adding-io-link-protocol-analyzers)
+      * [M-Sequences](#m-sequences)
+      * [Process Data](#process-data)
+      * [Events / Diagnosis](#events--diagnosis)
+      * [Direct Parameter (Page 1)](#direct-parameter-page-1)
+      * [Indexed Service Data Unit (ISDU)](#indexed-service-data-unit-isdu)
+  * [Open points](#open-points)
+<!-- TOC -->
+
 # IO-Link Protocol Analyzer
 
 This page describes the usage of an [IO-Link](https://io-link.com/) traffic analyzer extension for 
@@ -52,19 +67,33 @@ To interpret these UART frames, you can add one or more IO-Link Protocol Analyze
 specific type of information. For example, if you want to monitor both diagnostic and ISDU data, you would add 
 one analyzer for the diagnostic data and a second one for the ISDU data.
 
-#### M-Sequences
-
-
-
-#### Process Data
-
-#### Events / Diagnosis
-
-#### Direct Parameter (Page 1)
-
-#### Indexed Service Data Unit (ISDU)
-
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_analyzerSettings.png?raw=true">
 
 > If you want to change the output type (Analyzer Mode) later, you can do this by editing the analyzer settings.
 
-To be continued...
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_multipleAnalyzers.png?raw=true">
+
+
+#### M-Sequences
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_mSequence.png?raw=true">
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_mSequence_table.png?raw=true">
+
+#### Process Data
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_processData.png?raw=true">
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_processData_table.png?raw=true">
+
+#### Events / Diagnosis
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_diagnosis.png?raw=true">
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_diagnosis_table.png?raw=true">
+
+#### Direct Parameter (Page 1)
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_page.png?raw=true">
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_page_table.png?raw=true">
+
+#### Indexed Service Data Unit (ISDU)
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_isdu.png?raw=true">
+<img src="https://github.com/shaag7967/Saleae-IO-Link-Protocol-Analyzer/blob/main/doc/img/saleae_isdu_table.png?raw=true">
+
+## Open points
+
+- Conditional ProcessData: automatically switch between ProcessData definitions by evaluating condition index
