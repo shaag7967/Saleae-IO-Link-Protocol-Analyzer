@@ -22,7 +22,7 @@ class ISDURequest_Write8bitIdx(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self._getReadableIndexString(self.index),
+            'index': self.index,
             'data': self._rawData[3:-1] if self._hasExtendedLength() else self._rawData[2:-1]
         }
 
@@ -43,8 +43,8 @@ class ISDURequest_Write8bitIdxSub(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self._getReadableIndexString(self.index),
-            'subIndex': str(self.subIndex),
+            'index': self.index,
+            'subIndex': self.subIndex,
             'data': self._rawData[4:-1] if self._hasExtendedLength() else self._rawData[3:-1]
         }
 
@@ -65,8 +65,8 @@ class ISDURequest_Write16bitIdxSub(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self._getReadableIndexString(self.index),
-            'subIndex': str(self.subIndex),
+            'index': self.index,
+            'subIndex': self.subIndex,
             'data': self._rawData[5:-1] if self._hasExtendedLength() else self._rawData[4:-1]
         }
 
@@ -91,7 +91,7 @@ class ISDURequest_Read8bitIdx(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self._getReadableIndexString(self.index)
+            'index': self.index
         }
 
 
@@ -113,8 +113,8 @@ class ISDURequest_Read8bitIdxSub(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self._getReadableIndexString(self.index),
-            'subIndex': str(self.subIndex)
+            'index': self.index,
+            'subIndex': self.subIndex
         }
 
 
@@ -136,8 +136,8 @@ class ISDURequest_Read16bitIdxSub(ISDU):
     def data(self) -> dict:
         return {
             'valid': self.isValid,
-            'index': self._getReadableIndexString(self.index),
-            'subIndex': str(self.subIndex)
+            'index': self.index,
+            'subIndex': self.subIndex
         }
 
 

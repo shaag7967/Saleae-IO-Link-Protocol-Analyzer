@@ -5,6 +5,7 @@ from ._internal.iodd_documentInfo import DocumentInfo
 from ._internal.iodd_identity import Identity
 from ._internal.iodd_features import Features
 from ._internal.iodd_physical_layer import PhysicalLayer
+from ._internal.iodd_variableCollection import Variable, standardVariableCollection
 from ._internal.iodd_xmlDoc import IoddXmlDoc
 
 from iolink_utils.definitions.onRequestDataOctetCount import ODOctetCount
@@ -19,16 +20,17 @@ class Iodd:
         if not self._fileInfo.fileExists:
             raise IoddFileNotFound(f"IODD file not found: {self._fileInfo.fullPathFilename}")
 
-        iodd_xml_doc = IoddXmlDoc(self._fileInfo.fullPathFilename)
-        if iodd_xml_doc.docType == 'IODevice':
-            self._documentInfo: DocumentInfo = iodd_xml_doc.get_document_info()
-            self._identity: Identity = iodd_xml_doc.get_identity()
-            self._features: Features = iodd_xml_doc.get_device_features()
-            self._physicalLayer: PhysicalLayer = iodd_xml_doc.get_physical_layer()
-            self._processDataDefinition: Dict = iodd_xml_doc.get_process_data_definition()
+        ioddXmlDoc = IoddXmlDoc(self._fileInfo.fullPathFilename)
+        if ioddXmlDoc.docType == 'IODevice':
+            self._documentInfo: DocumentInfo = ioddXmlDoc.getDocumentInfo()
+            self._identity: Identity = ioddXmlDoc.getIdentity()
+            self._features: Features = ioddXmlDoc.getDeviceFeatures()
+            self._physicalLayer: PhysicalLayer = ioddXmlDoc.getPhysicalLayer()
+            self._processDataDefinition: Dict = ioddXmlDoc.getProcessDataDefinition()
+            self._variableCollection: Dict[int, Variable] = ioddXmlDoc.getVariableCollection()
         else:
             # e.g. language file
-            raise InvalidIoddFile(f"Expected IODevice inside XML file, got {iodd_xml_doc.docType}.")  # pragma: no cover
+            raise InvalidIoddFile(f"Expected IODevice inside XML file, got {ioddXmlDoc.docType}.")  # pragma: no cover
 
     @property
     def fileInfo(self) -> IoddFileInfo:
@@ -49,6 +51,14 @@ class Iodd:
     @property
     def physicalLayer(self) -> PhysicalLayer:
         return self._physicalLayer
+
+    @property
+    def variableCollection(self) -> Dict[int, Variable]:
+        return self._variableCollection
+
+    @property
+    def standardVariableCollection(self) -> Dict[int, Variable]:
+        return standardVariableCollection
 
     @property
     def processDataDefinition(self) -> Dict:
@@ -82,12 +92,12 @@ class Iodd:
         Returns number of on-request data octets in PREOPERATE and OPERATE
         :return: Tuple[preoperate, operate]
         """
-        if self._physicalLayer.m_sequence_capability is None:
+        if self._physicalLayer.mSequenceCapability is None:
             raise MSequenceCapabilityMissing("M-sequence capability required to calculate on-request data size.")
 
-        ODsize_preoperate: int = ODOctetCount.in_preoperate(self._physicalLayer.m_sequence_capability.preoperateCode)[0]
+        ODsize_preoperate: int = ODOctetCount.in_preoperate(self._physicalLayer.mSequenceCapability.preoperateCode)[0]
         ODsize_operate: int = ODOctetCount.in_operate(
-            self._physicalLayer.m_sequence_capability.operateCode, self.size_PDin, self.size_PDout)[0]
+            self._physicalLayer.mSequenceCapability.operateCode, self.size_PDin, self.size_PDout)[0]
         return ODsize_preoperate, ODsize_operate
 
     def isSafetyDevice(self) -> bool:

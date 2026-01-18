@@ -3,7 +3,6 @@ from abc import abstractmethod
 
 from iolink_utils.exceptions import InvalidISDUService
 from iolink_utils.definitions.iServiceNibble import IServiceNibble
-from iolink_utils.definitions.ioLinkIndex import IOLinkIndex
 from iolink_utils.octetDecoder.octetDecoder import IService
 from iolink_utils.messageInterpreter.transaction import Transaction
 
@@ -74,15 +73,6 @@ class ISDU(Transaction):
 
     def name(self) -> str:
         return self.__class__.__name__
-
-    @staticmethod
-    def _getReadableIndexString(index: int):
-        indexString = f"{index} / 0x{index:04X}"
-
-        try:
-            return f"{indexString} ({IOLinkIndex(index).name})"
-        except ValueError:
-            return indexString
 
     def _dataAsString(self) -> str:  # pragma: no cover
         return ", ".join(f"{name}={value}" for name, value in self.data().items())

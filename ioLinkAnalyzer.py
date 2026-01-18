@@ -112,7 +112,8 @@ class IOLinkProtocolAnalyzer(HighLevelAnalyzer):
             if self.analyzerMode == AnalyzerMode.Page:
                 return transaction.dispatch(PageHandler())
             if self.analyzerMode == AnalyzerMode.ISDU:
-                return transaction.dispatch(ISDUHandler())
+                return transaction.dispatch(
+                    ISDUHandler(self.iodd.standardVariableCollection, self.iodd.variableCollection))
 
         # convert messages into saleae frames
         if self.analyzerMode == AnalyzerMode.MSequence:
